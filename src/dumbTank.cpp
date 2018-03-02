@@ -60,4 +60,4 @@ bool DumbTank::isFiring()
 void DumbTank::score(int thisScore,int enemyScore)
 {
 	std::cout << "MyScore: " << thisScore << "\tEnemy score: " << enemyScore << std::endl;
-}
+}//tdghdhdfsh drsgh
