@@ -86,7 +86,9 @@
     <ClCompile Include="src\boundingBox.cpp" />
     <ClCompile Include="src\DumbTank.cpp" />
     <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\Graph.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Node.cpp" />
     <ClCompile Include="src\obstacle.cpp" />
     <ClCompile Include="src\playerTank.cpp" />
     <ClCompile Include="src\shell.cpp" />

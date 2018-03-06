@@ -10,6 +10,8 @@ private:
 	sf::Vector2u m_GridArrayPosition;
 	sf::Vector2u m_Size;
 
+	NS::NodeState m_State;
+
 	bool m_Active;
 	bool m_Current;
 
@@ -25,7 +27,7 @@ public:
 	static const bool s_m_NotPath = false;
 
 	// Constructor.
-	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GridArrayPosition);
+	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size);
 	~Node();
 
 	// Draw methods.
@@ -35,6 +37,7 @@ public:
 	// Accessor methods.
 	sf::Vector2u getPosition();
 
-	void setNode(NodeState p_NodeState);
+	void setNodeState(NS::NodeState p_NodeState);
+	NS::NodeState getNodeState() const;
 	inline bool operator<(const Node &p_One) const { return this->m_TotalCost < p_One.m_TotalCost; }
 };
