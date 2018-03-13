@@ -80,6 +80,7 @@
     <ClInclude Include="include\position.h" />
     <ClInclude Include="include\shell.h" />
     <ClInclude Include="include\tank.h" />
+    <ClInclude Include="StateMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\aitank.cpp" />
@@ -93,6 +94,7 @@
     <ClCompile Include="src\playerTank.cpp" />
     <ClCompile Include="src\shell.cpp" />
     <ClCompile Include="src\tank.cpp" />
+    <ClCompile Include="StateMachine.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
