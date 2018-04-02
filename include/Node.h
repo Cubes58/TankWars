@@ -21,7 +21,7 @@ private:
 
 	NodeState m_State;
 
-	sf::Vector2u m_ParentNodeGraphArrayPosition;	// Node you were before this one.
+	sf::Vector2u m_ParentNodeGraphArrayPosition;	// Node you were at before this one.
 
 	bool m_Active;
 	bool m_Current;
