@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <list>
 
 #include "Node.h"
 
@@ -16,7 +17,8 @@ public:
 	~Graph();
 	
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) const;
+	void aStarSearchAlgorithm(Node p_CurrentNode, Node p_GoalNode, std::list<Node> p_Path);
 
-	NS::NodeState getNodeState(const sf::Vector2u &p_GridPosition) const;
-	void setNodeState(const sf::Vector2u &p_GridPosition, NS::NodeState p_NodeState);
+	NodeState getNodeState(const sf::Vector2u &p_GridPosition) const;
+	void setNodeState(const sf::Vector2u &p_GridPosition, NodeState p_NodeState);
 };

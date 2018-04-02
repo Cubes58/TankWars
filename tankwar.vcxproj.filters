@@ -48,10 +48,7 @@
     <ClInclude Include="include\Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\NodeStates.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StateMachine.h">
+    <ClInclude Include="include\Instinct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,7 +86,7 @@
     <ClCompile Include="src\Graph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StateMachine.cpp">
+    <ClCompile Include="src\Instinct.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

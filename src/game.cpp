@@ -502,6 +502,9 @@ void Game::draw(sf::RenderTarget &target, sf::RenderStates states) const// Draw 
 		}
 		target.draw(drawingText);
 	}
+
+	if (debugMode) 
+		npc.getGraph()->draw(target, states);
 }
      
 void Game::keyPressed(sf::Keyboard::Key key)

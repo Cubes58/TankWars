@@ -1,25 +1,34 @@
 #pragma once
 
 #include <SFML\Graphics.hpp>
+#include <cmath>
 
-#include "NodeStates.h"
+enum class NodeState : unsigned int {		/* Must explicitly type cast! */
+	PATH,
+	WALL,
+	GOAL,
+	START,
+	OPEN,
+	CLOSED,
+	CURRENT
+};
 
 class Node : public sf::Drawable {
 private:
 	sf::Vector2u m_Position;
-	sf::Vector2u m_GridArrayPosition;
+	sf::Vector2u m_GraphArrayPosition;
 	sf::Vector2u m_Size;
 
-	NS::NodeState m_State;
+	NodeState m_State;
+
+	sf::Vector2u m_ParentNodeGraphArrayPosition;	// Node you were before this one.
 
 	bool m_Active;
 	bool m_Current;
-
-	int m_Parent;
-
-	float m_TotalCost;
-	float m_StartDistance;
-	float m_GoalDistance;
+	
+	float m_GValue;		// Distance cost of current node to start node.
+	float m_HValue;		// Distance cost of current node to goal node.
+	float m_FValue;		// Total distance cost, of the node.
 
 	sf::RectangleShape m_Shape;
 public:
@@ -27,7 +36,7 @@ public:
 	static const bool s_m_NotPath = false;
 
 	// Constructor.
-	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size);
+	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
 
 	// Draw methods.
@@ -37,7 +46,11 @@ public:
 	// Accessor methods.
 	sf::Vector2u getPosition();
 
-	void setNodeState(NS::NodeState p_NodeState);
-	NS::NodeState getNodeState() const;
-	inline bool operator<(const Node &p_One) const { return this->m_TotalCost < p_One.m_TotalCost; }
+	void setNodeState(NodeState p_NodeState);
+	NodeState getNodeState() const;
+
+	// Compare nodes based on their m_FValue - sort by lowest f cost.
+	inline bool operator<(const Node &p_Other) const { 
+		return this->m_FValue < p_Other.m_FValue; 
+	}
 };

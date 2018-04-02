@@ -13,13 +13,13 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{02A8C245-168E-46AA-AC65-0D6A2F615675}</ProjectGuid>
     <RootNamespace>tankwar</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -73,14 +73,13 @@
     <ClInclude Include="include\DumbTank.h" />
     <ClInclude Include="include\game.h" />
     <ClInclude Include="include\Graph.h" />
+    <ClInclude Include="include\Instinct.h" />
     <ClInclude Include="include\Node.h" />
-    <ClInclude Include="include\NodeStates.h" />
     <ClInclude Include="include\obstacle.h" />
     <ClInclude Include="include\playerTank.h" />
     <ClInclude Include="include\position.h" />
     <ClInclude Include="include\shell.h" />
     <ClInclude Include="include\tank.h" />
-    <ClInclude Include="StateMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\aitank.cpp" />
@@ -88,13 +87,13 @@
     <ClCompile Include="src\DumbTank.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\Graph.cpp" />
+    <ClCompile Include="src\Instinct.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Node.cpp" />
     <ClCompile Include="src\obstacle.cpp" />
     <ClCompile Include="src\playerTank.cpp" />
     <ClCompile Include="src\shell.cpp" />
     <ClCompile Include="src\tank.cpp" />
-    <ClCompile Include="StateMachine.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
