@@ -238,17 +238,29 @@ void Game::play()// Play the game for one timestep
 	// Check if AI Tank can see anything
     for (list<Obstacle>::iterator it = redBuildings.begin(); it != redBuildings.end(); ++it)
     {
-	  if(npc.canSee(it->bb)) npc.markBase(Position((it->bb.getX1() + it->bb.getX2()) / 2.0f, (it->bb.getY1() + it->bb.getY2()) / 2.0f));
+		if (npc.canSee(it->bb))	//can npc see red buildings
+		{
+			npc.markBase(Position((it->bb.getX1() + it->bb.getX2()) / 2.0f, (it->bb.getY1() + it->bb.getY2()) / 2.0f));
+		}
     }
     for (list<Obstacle>::iterator it = blueBuildings.begin(); it != blueBuildings.end(); ++it)
     {
-	  if(npc.canSee(it->bb)) npc.markTarget(Position((it->bb.getX1() + it->bb.getX2()) / 2.0f, (it->bb.getY1() + it->bb.getY2()) / 2.0f));
+		if (npc.canSee(it->bb)) //can npc see blue buildings
+		{
+			npc.markTarget(Position((it->bb.getX1() + it->bb.getX2()) / 2.0f, (it->bb.getY1() + it->bb.getY2()) / 2.0f));
+		}
     }
     for (list<Shell>::iterator it = shells.begin(); it != shells.end(); ++it)
     {
-	  if(npc.canSee(it->bb) && !it->isNpc()) npc.markShell(Position((it->bb.getX1() + it->bb.getX2()) / 2.0f, (it->bb.getY1() + it->bb.getY2()) / 2.0f));
+		if (npc.canSee(it->bb) && !it->isNpc()) //can npc see shells
+		{
+			npc.markShell(Position((it->bb.getX1() + it->bb.getX2()) / 2.0f, (it->bb.getY1() + it->bb.getY2()) / 2.0f));
+		}
     }
-	if(npc.canSee(player.bb)) npc.markEnemy(Position((player.bb.getX1() + player.bb.getX2()) / 2.0f, (player.bb.getY1() + player.bb.getY2()) / 2.0f ));
+	if (npc.canSee(player.bb)) //can npc see enemy player
+	{
+		npc.markEnemy(Position((player.bb.getX1() + player.bb.getX2()) / 2.0f, (player.bb.getY1() + player.bb.getY2()) / 2.0f));
+	}
 
 	// Move shells
 	for (list<Shell>::iterator it = shells.begin(); it != shells.end(); ++it){it->move();}

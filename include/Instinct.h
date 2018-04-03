@@ -37,6 +37,8 @@ private:
 	int m_iEnemyScore = 0;
 
 	bool m_bFiring = false;
+
+	Position m_EnemyLastPosition;
 public:
 	Instinct();
 	~Instinct();
