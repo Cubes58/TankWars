@@ -16,14 +16,14 @@ Graph::Graph() {
 				temp = new Node(sf::Vector2u((column * s_m_PixelSize) + rowPositionOffset, (row * s_m_PixelSize) + columnPositionOffset),
 					sf::Vector2u(s_m_PixelSize, s_m_PixelSize), sf::Vector2u(column, row), NodeState::OPEN);
 			}
-			m_Grid[row][column] = temp;
+			m_Nodes[row][column] = temp;
 		}
 	}
 }
 
 Graph::~Graph() {
-	for (auto i : m_Grid) {
-		for (auto j : i) {
+	for (auto &i : m_Nodes) {
+		for (auto &j : i) {
 			if (j != nullptr) {
 				delete j;
 				j = nullptr;
@@ -33,27 +33,86 @@ Graph::~Graph() {
 }
 
 void Graph::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) const {
-	for (auto &i : m_Grid) {
+	for (auto &i : m_Nodes) {
 		for (auto &j : i) {
 			j->draw(p_RenderTarget, p_State);
 		}
 	}
 }
 
-void Graph::aStarSearchAlgorithm(Node p_CurrentNode, Node p_GoalNode, std::list<Node> p_Path) {
+bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node> &p_Path) {
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
 
-	// Empty the closed list.
+	// Make sure the closed list is empty.
 	closedList.empty();
 
+	// Set the starting node.
+	Node currentNode = p_StartNode;
+	currentNode.setParentNodeGraphArrayPosition(currentNode.getGraphArrayPosition());		// Set it to itself.
+	currentNode.setGValue(0);
+	currentNode.setFValue(currentNode.getGValue() + currentNode.calculateManhattanHeuristic(currentNode, p_GoalNode));
 
+	// Add the starting node to the list.
+	openList.push_back(currentNode);
+
+	// While there are nodes in the open list.
+	while (!openList.empty()) {
+		openList.sort();		// Sort the open list, according to the node's m_FValue.
+
+		if (currentNode == p_GoalNode) {
+			p_Path = constructPath(p_GoalNode);
+			return true;		// Path found.
+		}
+
+		// Set the node to the one with the best (lowest) m_FValue.
+		currentNode = openList.front();
+		openList.pop_front();				// Remove the node and the front/update the list.
+		closedList.push_back(currentNode);	// Add it to the closed list.
+
+		for (auto &neighbour : getNeighbours(currentNode)) {
+
+		}
+	}
+
+	return false;		// A path wasn't found.
+}
+
+std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
+	static const float diagonalCost(1.414);
+	static const float normalCost(1);
+
+	std::vector<Node*> neighbours;
+	std::vector<bool> diagonals;
+
+
+	return neighbours;
+}
+
+std::list<Node> Graph::constructPath(Node &p_GoalNode) {
+	std::list<Node> path;
+	path.empty();
+
+	Node currentNode = p_GoalNode;
+	path.push_back(currentNode);
+
+	// While a parent exists.
+	while (currentNode.getParentNodeGraphArrayPosition() != currentNode.getGraphArrayPosition()) {
+		currentNode = getNode(currentNode.getParentNodeGraphArrayPosition());
+		path.push_back(currentNode);
+	}
+
+	return path;
+}
+
+Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) {
+	return *m_Nodes[p_NodeGraphPosition.x][p_NodeGraphPosition.y];
 }
 
 NodeState Graph::getNodeState(const sf::Vector2u &p_GridPosition) const {
-	return m_Grid[p_GridPosition.x][p_GridPosition.y]->getNodeState();
+	return m_Nodes[p_GridPosition.x][p_GridPosition.y]->getNodeState();
 }
 
 void Graph::setNodeState(const sf::Vector2u &p_GridPosition, NodeState p_NodeState) {
-	m_Grid[p_GridPosition.x][p_GridPosition.y]->setNodeState(p_NodeState);
+	m_Nodes[p_GridPosition.x][p_GridPosition.y]->setNodeState(p_NodeState);
 }

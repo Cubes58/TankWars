@@ -36,6 +36,7 @@ private:
 	int m_iOurScore = 0;
 	int m_iEnemyScore = 0;
 
+	bool m_bFiring = false;
 public:
 	Instinct();
 	~Instinct();

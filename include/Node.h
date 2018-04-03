@@ -10,7 +10,8 @@ enum class NodeState : unsigned int {		/* Must explicitly type cast! */
 	START,
 	OPEN,
 	CLOSED,
-	CURRENT
+	CURRENT,
+	BASE
 };
 
 class Node : public sf::Drawable {
@@ -41,7 +42,7 @@ public:
 
 	// Draw methods.
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;
-	int calculateHeuristic(float p_ParentGScore, const sf::Vector2u &p_CurrentPosition, const sf::Vector2u &p_Goal);
+	int calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode);
 
 	// Accessor methods.
 	sf::Vector2u getPosition();
@@ -49,8 +50,26 @@ public:
 	void setNodeState(NodeState p_NodeState);
 	NodeState getNodeState() const;
 
-	// Compare nodes based on their m_FValue - sort by lowest f cost.
+	void setParentNodeGraphArrayPosition(const sf::Vector2u &p_ParentNodeGraphArrayPosition);
+	sf::Vector2u getParentNodeGraphArrayPosition();
+
+	sf::Vector2u getGraphArrayPosition();
+
+	void setGValue(float p_GValue);
+	float getGValue();
+
+	void setHValue(float p_HValue);
+	float getHValue();
+
+	void setFValue(float p_FValue);
+	float getFValue();
+
+	// Compare nodes based on their m_FValue - sort by lowest f cost use the less than operator to compare.
 	inline bool operator<(const Node &p_Other) const { 
 		return this->m_FValue < p_Other.m_FValue; 
+	}
+
+	inline bool operator==(const Node &p_Other) const {
+		return this->m_Position == p_Other.m_Position;
 	}
 };

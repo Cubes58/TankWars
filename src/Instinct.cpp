@@ -9,7 +9,7 @@ Instinct::~Instinct() {
 }
 
 void Instinct::reset() {
-
+	m_Path.clear();	// Clear the old path, ready for a new one.
 }
 
 void Instinct::move() {
@@ -37,9 +37,7 @@ void Instinct::markShell(Position p_Position) {
 }
 
 bool Instinct::isFiring() {
-	bool temp(false);
-
-	return temp;
+	return m_bFiring;
 }
 
 void Instinct::score(int p_ThisScore, int p_EnemyScore) {
