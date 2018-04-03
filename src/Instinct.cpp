@@ -2,7 +2,7 @@
 
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
-	Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 1));
+	Node *tempNode = &m_Graph->getNode(sf::Vector2u(20, 1));
 	m_Path.push_back(tempNode);
 	m_eMainState = MainStates::Attacking;
 	m_eAttackingState = AttackingStates::Locating;
