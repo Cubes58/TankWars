@@ -71,7 +71,18 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 		closedList.push_back(currentNode);	// Add it to the closed list.
 
 		for (auto &neighbour : getNeighbours(currentNode)) {
-			//if(neighbour == )
+			bool inClosedList(false);
+
+			// Iterate through the closed list, looking for the neighbour.
+			for (auto &closedListNode : closedList) {
+				if (*neighbour == closedListNode)	// IF THIS DOESN'T WORK CHECK THE GRAPH ARRAY POSITION.
+					inClosedList = true;
+			}
+
+			if (!inClosedList) {
+				openList.push_back(*neighbour);
+				neighbour->setNodeState(NodeState::CLOSED);
+			}
 		}
 	}
 
@@ -103,6 +114,36 @@ std::list<Node> Graph::constructPath(Node &p_GoalNode) {
 	}
 
 	return path;
+}
+
+Node *Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
+	// Node x every 10 pixels.
+	// Node y every 10 pixels.
+
+	/*
+	sf::Vector2u tankPosition = p_NodePixelPosition;
+
+	int xRe = tankPosition.x % 10;
+	int yRe = tankPosition.y % 10;
+
+	int xPos = tankPosition.x / 10;
+	int yPos = tankPosition.y / 10;
+
+	int xFinalPos = xPos - xRe;
+	int yFinalPos = yPos - yRe;
+	*/
+
+	for (auto &i : m_Nodes) {
+		for (auto &j : i) {
+			// Make sure it's in the correct row/column.
+			if ((j->getPosition().x - 10 >= p_NodePixelPosition.x && j->getPosition().x + 10 <= p_NodePixelPosition.x)
+				&& (j->getPosition().y - 10 >= p_NodePixelPosition.y && j->getPosition().y + 10 <= p_NodePixelPosition.y)) {
+				return j;
+			}
+		}
+	}
+	
+	return nullptr;
 }
 
 Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) {
