@@ -151,9 +151,9 @@ Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) {
 }
 
 NodeState Graph::getNodeState(const sf::Vector2u &p_GridPosition) const {
-	return m_Nodes[p_GridPosition.x][p_GridPosition.y]->getNodeState();
+	return m_Nodes[p_GridPosition.y][p_GridPosition.x]->getNodeState();
 }
 
 void Graph::setNodeState(const sf::Vector2u &p_GridPosition, NodeState p_NodeState) {
-	m_Nodes[p_GridPosition.x][p_GridPosition.y]->setNodeState(p_NodeState);
+	m_Nodes[p_GridPosition.y][p_GridPosition.x]->setNodeState(p_NodeState);
 }
