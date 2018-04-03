@@ -136,8 +136,8 @@ Node *Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
 	for (auto &i : m_Nodes) {
 		for (auto &j : i) {
 			// Make sure it's in the correct row/column.
-			if ((j->getPosition().x - 10 >= p_NodePixelPosition.x && j->getPosition().x + 10 <= p_NodePixelPosition.x)
-				&& (j->getPosition().y - 10 >= p_NodePixelPosition.y && j->getPosition().y + 10 <= p_NodePixelPosition.y)) {
+			if ((j->getPosition().x - 10 <= p_NodePixelPosition.x && j->getPosition().x + 10 >= p_NodePixelPosition.x)
+				&& (j->getPosition().y - 10 <= p_NodePixelPosition.y && j->getPosition().y + 10 >= p_NodePixelPosition.y)) {
 				return j;
 			}
 		}
