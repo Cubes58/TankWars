@@ -147,7 +147,7 @@ Node *Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
 }
 
 Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) {
-	return *m_Nodes[p_NodeGraphPosition.x][p_NodeGraphPosition.y];
+	return *m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x];
 }
 
 NodeState Graph::getNodeState(const sf::Vector2u &p_GridPosition) const {
