@@ -1,7 +1,7 @@
 #include "Instinct.h"
 
 Instinct::Instinct() {
-	
+	clearMovement();
 }
 
 Instinct::~Instinct() {
