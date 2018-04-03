@@ -48,6 +48,15 @@ void Instinct::score(int p_ThisScore, int p_EnemyScore) {
 
 }
 
+void Instinct::drive()
+{
+	if (m_Path.size() != 0)
+	{
+		m_TargetNode = *m_Path.back();
+
+	}
+}
+
 Graph *Instinct::getGraph() const {
 	return m_Graph;
 }

@@ -23,6 +23,8 @@ class Instinct : public AITank {
 private:
 	Graph *m_Graph = new Graph;
 	std::list<Node*> m_Path;
+	Node m_TargetNode;
+	Node m_CurrentNode;
 	
 	MainStates m_eMainState;
 	DefendingStates m_eDefendingState;
@@ -52,6 +54,8 @@ public:
 	void markShell(Position p_Position);
 	bool isFiring();
 	void score(int p_ThisScore, int p_EnemyScore);
+
+	void drive();
 
 	Graph *getGraph() const;
 };
