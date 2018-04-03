@@ -1,8 +1,11 @@
 #include "Instinct.h"
+#include <iostream>
 
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
-	Node *tempNode = &m_Graph->getNode(sf::Vector2u(20, 1));
+
+	Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 20));
+	tempNode->setNodeState(NodeState::GOAL);
 	m_Path.push_back(tempNode);
 	m_eMainState = MainStates::Attacking;
 	m_eAttackingState = AttackingStates::Locating;
@@ -17,10 +20,8 @@ void Instinct::reset() {
 }
 
 void Instinct::move() { //called every frame
-	if (m_eMainState == MainStates::Attacking && m_eAttackingState == AttackingStates::Locating)
-	{
-		drive();
-	}
+	Scan();
+	//drive();
 }
 
 void Instinct::collided() {
@@ -111,7 +112,39 @@ void Instinct::drive()
 			{
 				m_TargetNode = m_Path.back();
 			}
+			else
+			{
+				stop();
+			}
 		}
+	}
+}
+
+void Instinct::Scan()
+{
+	static bool scanStarted(false);
+	static float startTurretAngle(turretTh);
+	if (scanStarted == false)
+	{
+		scanStarted = true;
+		startTurretAngle = turretTh;
+		if (debugMode)
+		{
+			std::cout << startTurretAngle << std::endl;
+		}
+		turretGoRight();
+	}
+	if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle)
+	{
+		if (debugMode)
+		{
+			std::cout << "scan finished" << std::endl;
+		}
+		scanStarted = false;
+	}
+	if (scanStarted && debugMode)
+	{
+		std::cout << turretTh << std::endl; //0 is to the east
 	}
 }
 
