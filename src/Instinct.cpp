@@ -14,7 +14,10 @@ void Instinct::reset() {
 }
 
 void Instinct::move() { //called every frame
-
+	if (m_eMainState == MainStates::Attacking && m_eAttackingState == AttackingStates::Locating)
+	{
+		
+	}
 }
 
 void Instinct::collided() {
