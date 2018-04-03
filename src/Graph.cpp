@@ -131,6 +131,8 @@ Node *Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
 
 	int xFinalPos = xPos - xRe;
 	int yFinalPos = yPos - yRe;
+
+	THINK OF A BETTER WAT TO IMPLEMENT THE BELOW.
 	*/
 
 	for (auto &i : m_Nodes) {
