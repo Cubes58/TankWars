@@ -36,6 +36,9 @@ private:
 	int m_iturretAngle = 0;
 	float m_fgetEnemyDistance = 0.0f;
 	*/
+
+	sf::Vector2u m_AimingAt;
+
 	bool m_bSeenBase = false;
 	bool m_bEnemySeen = false;
 	bool m_bBulletSeen = false;
@@ -64,6 +67,7 @@ public:
 	void score(int p_ThisScore, int p_EnemyScore);
 
 	void drive();
+	void Scan();
 
 	Graph *getGraph() const;
 };
