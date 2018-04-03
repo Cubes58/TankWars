@@ -41,6 +41,8 @@ public:
 	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
 
+	bool checkValidNode();
+
 	// Draw methods.
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;
 	int calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode);
@@ -73,4 +75,5 @@ public:
 	inline bool operator==(const Node &p_Other) const {
 		return this->m_Position == p_Other.m_Position;
 	}
+	
 };

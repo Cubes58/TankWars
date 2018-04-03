@@ -17,6 +17,11 @@ Node::~Node() {
 
 }
 
+bool Node::checkValidNode()
+{
+	return false;
+}
+
 void Node::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const {
 	p_RenderTarget.draw(m_Shape);
 }

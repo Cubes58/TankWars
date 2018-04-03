@@ -71,7 +71,7 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 		closedList.push_back(currentNode);	// Add it to the closed list.
 
 		for (auto &neighbour : getNeighbours(currentNode)) {
-			//if(neighbour == )
+			if(neighbour ==  
 		}
 	}
 
