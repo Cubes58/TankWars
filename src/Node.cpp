@@ -17,11 +17,6 @@ Node::~Node() {
 
 }
 
-bool Node::checkValidNode()
-{
-	return false;
-}
-
 void Node::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const {
 	p_RenderTarget.draw(m_Shape);
 }
@@ -30,9 +25,11 @@ int Node::calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode) {
 	int xDistance = p_PreviousNode.getPosition().x - p_GoalNode.getPosition().x;
 	int yDistance = p_PreviousNode.getPosition().y - p_GoalNode.getPosition().y;
 
-	/* NOTE: CHANGE TO USE ARRAY POSITION INSTEAD OF PIXEL POS!!! */
-
 	return std::abs(xDistance) + std::abs(yDistance);
+}
+
+bool Node::getIsPath() {
+	return m_IsPath;
 }
 
 sf::Vector2u Node::getPosition() {
@@ -46,30 +43,39 @@ void Node::setNodeState(NodeState p_State) {
 	switch (m_State) {
 	case NodeState::PATH:
 		m_Shape.setFillColor(sf::Color(255, 110, 0, 150));		// Orange.
+		m_IsPath = true;
 		break;
 	case NodeState::WALL:
 		m_Shape.setFillColor(sf::Color(0, 0, 0, 150));			// Black.
+		m_IsPath = false;
 		break;
 	case NodeState::GOAL:
 		m_Shape.setFillColor(sf::Color(255, 255, 0, 120));		// Yellow.
+		m_IsPath = true;
 		break;
 	case NodeState::START:
 		m_Shape.setFillColor(sf::Color(0, 0, 255, 120));		// Blue.
+		m_IsPath = true;
 		break;
 	case::NodeState::OPEN:
 		m_Shape.setFillColor(sf::Color(255, 0, 0, 50));			// Red.
+		m_IsPath = true;
 		break;
 	case::NodeState::CLOSED:
 		m_Shape.setFillColor(sf::Color(0, 255, 0, 70));			// Green.
+		m_IsPath = true;
 		break;
 	case::NodeState::CURRENT:
 		m_Shape.setFillColor(sf::Color(255, 12, 225, 150));		// Magenta.
+		m_IsPath = true;
 		break;
 	case::NodeState::BASE:
 		m_Shape.setFillColor(sf::Color(45, 255, 239, 160));		// Cyan.
+		m_IsPath = false;
 		break;
 	default:
 		m_Shape.setFillColor(sf::Color(255, 255, 255, 150));	// Default: White.
+		m_IsPath = false;
 		break;
 	}
 }

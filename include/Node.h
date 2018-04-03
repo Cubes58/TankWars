@@ -26,6 +26,8 @@ private:
 
 	bool m_Active;
 	bool m_Current;
+
+	bool m_IsPath;
 	
 	float m_GValue;		// Distance cost of current node to start node.
 	float m_HValue;		// Distance cost of current node to goal node.
@@ -41,12 +43,12 @@ public:
 	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
 
-	bool checkValidNode();
-
 	// Draw methods.
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;
 	int calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode);
-
+	
+	bool getIsPath();
+	
 	// Accessor methods.
 	sf::Vector2u getPosition();
 
@@ -75,5 +77,4 @@ public:
 	inline bool operator==(const Node &p_Other) const {
 		return this->m_Position == p_Other.m_Position;
 	}
-	
 };
