@@ -37,6 +37,7 @@ public:
 	static const bool s_m_NotPath = false;
 
 	// Constructor.
+	Node() = default;
 	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
 
