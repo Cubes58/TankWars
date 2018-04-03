@@ -23,13 +23,19 @@ class Instinct : public AITank {
 private:
 	Graph *m_Graph = new Graph;
 	std::list<Node*> m_Path;
-	Node m_TargetNode;
-	Node m_CurrentNode;
+	Node* m_TargetNode;
+	Node* m_CurrentNode;
 	
 	MainStates m_eMainState;
 	DefendingStates m_eDefendingState;
 	AttackingStates m_eAttackingState;
-
+	/*
+	int m_iEnemyBases = 10;
+	int m_ixPos = 0;
+	int m_iangleInDegrees = 0;
+	int m_iturretAngle = 0;
+	float m_fgetEnemyDistance = 0.0f;
+	*/
 	bool m_bSeenBase = false;
 	bool m_bEnemySeen = false;
 	bool m_bBulletSeen = false;
@@ -39,6 +45,8 @@ private:
 	int m_iEnemyScore = 0;
 
 	bool m_bFiring = false;
+
+	float rotPrecision = 5;
 
 	Position m_EnemyLastPosition;
 public:
