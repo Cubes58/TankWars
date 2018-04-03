@@ -2,8 +2,12 @@
 
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
-	Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 1));
-	m_Path.push_back(tempNode);
+	//Node *tempNode = &m_Graph->getNode(sf::Vector2u(25, 20));
+	Node *tempNode1 = &m_Graph->getNode(sf::Vector2u(5, 15));
+	//Node *tempNode2 = &m_Graph->getNode(sf::Vector2u(10, 20));
+	//m_Path.push_back(tempNode);
+	m_Path.push_back(tempNode1);
+	//m_Path.push_back(tempNode2);
 	m_eMainState = MainStates::Attacking;
 	m_eAttackingState = AttackingStates::Locating;
 }
@@ -81,7 +85,7 @@ void Instinct::drive()
 		float dTankAngle = pos.getTh();
 		float dDeltaAngle = dTankAngle - dTargetAngle;
 		bool facingTarget = (dDeltaAngle < rotPrecision && dDeltaAngle > -rotPrecision);
-		bool finishedDriving = m_Path.size() == 0;
+		bool finishedDriving = (m_Path.size() == 0);
 
 		if (facingTarget && !finishedDriving)
 		{
@@ -110,6 +114,10 @@ void Instinct::drive()
 			if (m_Path.size() != 0)
 			{
 				m_TargetNode = m_Path.back();
+			}
+			else
+			{
+				stop();
 			}
 		}
 	}
