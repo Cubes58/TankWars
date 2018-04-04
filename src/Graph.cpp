@@ -70,18 +70,35 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 		openList.pop_front();				// Remove the node and the front/update the list.
 		closedList.push_back(currentNode);	// Add it to the closed list.
 
-		for (auto &neighbour : getNeighbours(currentNode)) {
+		for (auto &neighbourNode : getNeighbours(currentNode)) {
 			bool inClosedList(false);
 
 			// Iterate through the closed list, looking for the neighbour.
 			for (auto &closedListNode : closedList) {
-				if (*neighbour == closedListNode)	// IF THIS DOESN'T WORK CHECK THE GRAPH ARRAY POSITION.
+				if (*neighbourNode == closedListNode)	// IF THIS DOESN'T WORK CHECK THE GRAPH ARRAY POSITION - MAKE SURE THE OPERATOR BEING USED COMPUTES IT CORRECTLY.
 					inClosedList = true;
 			}
 
 			if (!inClosedList) {
-				openList.push_back(*neighbour);
-				neighbour->setNodeState(NodeState::CLOSED);
+				neighbourNode->setFValue(neighbourNode->getGValue() + neighbourNode->calculateManhattanHeuristic(currentNode, p_GoalNode));
+
+				bool inOpenList = false;
+				for (auto &openListNode : openList) {
+					if (*neighbourNode == openListNode) {
+						inOpenList = true;
+					}
+				}
+
+				if (!inOpenList) {
+					openList.push_back(*neighbourNode);
+				}
+				else {
+					Node *openNeighbour = neighbourNode;
+					if (neighbourNode->getGValue() < openNeighbour->getGValue()) {
+						openNeighbour->setGValue(neighbourNode->getGValue());
+						openNeighbour->setParentNodeGraphArrayPosition(neighbourNode->getParentNodeGraphArrayPosition());
+					}
+				}
 			}
 		}
 	}
