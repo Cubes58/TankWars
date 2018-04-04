@@ -113,54 +113,33 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 	std::vector<Node*> neighbours;
 	std::vector<bool> diagonals;
 
-	for (int column = p_Node.getGraphArrayPosition().x - 1; column != p_Node.getGraphArrayPosition().x + 2; column++)
-	{
+	for (int column = p_Node.getGraphArrayPosition().x - 1; column != p_Node.getGraphArrayPosition().x + 2; column++) {
 		for (int row = p_Node.getGraphArrayPosition().y - 1; row != p_Node.getGraphArrayPosition().y + 2; row++) {
 			if (p_Node.getGraphArrayPosition().x == column && p_Node.getGraphArrayPosition().y == row)
-			{
 				continue;
-			}
 
 			if (column >= 0 && column < s_m_ColumnSize && row >= 0 && row < s_m_RowSize) {
 				Node* temp = &getNode(sf::Vector2u(column, row));
 				neighbours.push_back(temp);
 
-				if (column == p_Node.getGraphArrayPosition().x - 1 || column == p_Node.getGraphArrayPosition().x + 1)
-				{
+				if (column == p_Node.getGraphArrayPosition().x - 1 || column == p_Node.getGraphArrayPosition().x + 1) {
 					if (row == p_Node.getGraphArrayPosition().y - 1 || row == p_Node.getGraphArrayPosition().y + 1)
-					{
 						diagonals.push_back(true);
-					}
-					else diagonals.push_back(false);
-					
+					else 
+						diagonals.push_back(false);
 				}
-				else diagonals.push_back(false);
-
+				else 
+					diagonals.push_back(false);
 			}
-			
-
 		}
 	}
 
-	for (int j = 0; j < neighbours.size(); j++) {
-		
-		if (diagonals[j] == false){
-			neighbours[j]->setGValue(p_Node.getGValue() + normalCost);
-		}
-		else neighbours[j]->setGValue(p_Node.getGValue() + diagonalCost);
-
+	for (int i = 0; i < neighbours.size(); i++) {
+		if (diagonals[i])
+			neighbours[i]->setGValue(p_Node.getGValue() + diagonalCost);
+		else 
+			neighbours[i]->setGValue(p_Node.getGValue() + normalCost);
 	}
-
-	/*function neighbors(node)
-	neighbors = set of valid neighbors to node // check for obstacles here
-		for each neighbor in neighbors
-			if neighbor is diagonal
-				neighbor.g = node.g + diagonal_cost // eg. 1.414 (pythagoras)
-			else
-				neighbor.g = node.g + normal_cost // eg. 1
-				neighbor.parent = node
-				return neighbors
-     */
 
 	return neighbours;
 }
@@ -182,27 +161,8 @@ std::list<Node> Graph::constructPath(Node &p_GoalNode) {
 }
 
 Node *Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
-	// Node x every 10 pixels.
-	// Node y every 10 pixels.
-
-	/*
-	sf::Vector2u tankPosition = p_NodePixelPosition;
-
-	int xRe = tankPosition.x % 10;
-	int yRe = tankPosition.y % 10;
-
-	int xPos = tankPosition.x / 10;
-	int yPos = tankPosition.y / 10;
-
-	int xFinalPos = xPos - xRe;
-	int yFinalPos = yPos - yRe;
-
-	THINK OF A BETTER WAT TO IMPLEMENT THE BELOW.
-	*/
-
 	for (auto &i : m_Nodes) {
 		for (auto &j : i) {
-			// Make sure it's in the correct row/column.
 			if ((j->getPosition().x - 10 <= p_NodePixelPosition.x && j->getPosition().x + 10 >= p_NodePixelPosition.x)
 				&& (j->getPosition().y - 10 <= p_NodePixelPosition.y && j->getPosition().y + 10 >= p_NodePixelPosition.y)) {
 				return j;
