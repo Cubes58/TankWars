@@ -22,8 +22,8 @@ void Node::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) con
 }
 
 int Node::calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode) {
-	int xDistance = p_PreviousNode.getPosition().x - p_GoalNode.getPosition().x;
-	int yDistance = p_PreviousNode.getPosition().y - p_GoalNode.getPosition().y;
+	int xDistance = p_PreviousNode.getGraphArrayPosition().x - p_GoalNode.getGraphArrayPosition().x;
+	int yDistance = p_PreviousNode.getGraphArrayPosition().y - p_GoalNode.getGraphArrayPosition().y;
 
 	return std::abs(xDistance) + std::abs(yDistance);
 }
