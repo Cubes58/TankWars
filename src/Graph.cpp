@@ -40,7 +40,7 @@ void Graph::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) con
 	}
 }
 
-bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node> &p_Path) {
+bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path) {
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
 
@@ -144,17 +144,17 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 	return neighbours;
 }
 
-std::list<Node> Graph::constructPath(Node &p_GoalNode) {
-	std::list<Node> path;
+std::list<Node*> Graph::constructPath(Node &p_GoalNode) {
+	std::list<Node*> path;
 	path.empty();
 
 	Node currentNode = p_GoalNode;
-	path.push_back(currentNode);
+	path.push_back(&currentNode);
 
 	// While a parent exists.
 	while (currentNode.getParentNodeGraphArrayPosition() != currentNode.getGraphArrayPosition()) {
 		currentNode = getNode(currentNode.getParentNodeGraphArrayPosition());
-		path.push_back(currentNode);
+		path.push_back(&currentNode);
 	}
 
 	return path;

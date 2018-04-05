@@ -18,9 +18,9 @@ public:
 	
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) const;
 
-	bool aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node> &p_Path);
+	bool aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path);
 	std::vector<Node*> getNeighbours(Node &p_Node);
-	std::list<Node> constructPath(Node &p_GoalNode);
+	std::list<Node*> constructPath(Node &p_GoalNode);
 
 	Node *getPixelNode(const sf::Vector2u &p_NodePixelPosition);
 	Node &getNode(const sf::Vector2u &p_NodeGraphPosition);

@@ -4,11 +4,12 @@
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
 
-	Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 20));
-	tempNode->setNodeState(NodeState::GOAL);
-	m_Path.push_back(tempNode);
-	m_eMainState = MainStates::Attacking;
-	m_eAttackingState = AttackingStates::Locating;
+	//Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 20));
+	//tempNode->setNodeState(NodeState::GOAL);
+	//m_Path.push_back(tempNode);
+	//m_eMainState = MainStates::Attacking;
+	//m_eAttackingState = AttackingStates::Locating;
+	m_Graph->aStarSearchAlgorithm(*m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
 }
 
 Instinct::~Instinct() {
@@ -20,8 +21,8 @@ void Instinct::reset() {
 }
 
 void Instinct::move() { //called every frame
-	Scan();
-	//drive();
+	//Scan();
+	drive();
 }
 
 void Instinct::collided() {
