@@ -9,7 +9,7 @@ Instinct::Instinct() {
 	//m_Path.push_back(tempNode);
 	//m_eMainState = MainStates::Attacking;
 	//m_eAttackingState = AttackingStates::Locating;
-	m_Graph->aStarSearchAlgorithm(*m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
+	//m_Graph->aStarSearchAlgorithm(*m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
 }
 
 Instinct::~Instinct() {
@@ -30,12 +30,9 @@ void Instinct::collided() {
 }
 
 void Instinct::markTarget(Position p_Position) {
-	
-}
 
-void Instinct::markEnemy(Position p_Position) {
-	m_EnemyLastPosition = p_Position;
-/*
+	m_EnemyBasePosition = p_Position;
+
 	m_bEnemySeen = true;
 	m_ixPos = p_Position.getX();
 
@@ -45,11 +42,13 @@ void Instinct::markEnemy(Position p_Position) {
 	m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
 	m_iturretAngle = m_iangleInDegrees + 180;
 
-	float dx = (float)(p_Position.getX() - getX());
-	float dy = (float)(p_Position.getY() - getY());
+	takeAim();
+	
+}
 
-	m_fgetEnemyDistance = sqrt(dx * dx + dy * dy);
-	*/
+void Instinct::markEnemy(Position p_Position) {
+	m_EnemyLastPosition = p_Position;
+	takeAim();
 }
 
 void Instinct::markBase(Position p_Position) {
@@ -70,6 +69,10 @@ void Instinct::score(int p_ThisScore, int p_EnemyScore) {
 
 void Instinct::drive()
 {
+	if (m_Path.size() == 0)
+	{
+		m_Graph->aStarSearchAlgorithm(*m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
+	}
 	if (m_Path.size() != 0)
 	{
 		//currentNode = getnode from graph using pixel pos
@@ -148,6 +151,81 @@ void Instinct::Scan()
 		std::cout << turretTh << std::endl; //0 is to the east
 	}
 }
+
+void Instinct::takeAim()
+{
+	float temp_enemy = getDistance(m_EnemyLastPosition);
+	float temp_enemyBase = getDistance(m_EnemyBasePosition);
+
+	if (temp_enemy < temp_enemyBase)
+	{
+
+		m_bEnemySeen = true;
+		m_ixPos = m_EnemyLastPosition.getX();
+
+		float deltaX = getX() - m_EnemyLastPosition.getX();
+		float deltaY = getY() - m_EnemyLastPosition.getY();
+
+		m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
+		m_iturretAngle = m_iangleInDegrees + 180;
+
+		float deltaR = turretTh - m_iturretAngle;
+
+		if (deltaR > 1 && deltaR < 180 || deltaR < -180)
+		{
+			turretGoLeft();
+		}
+		else if (deltaR < -1 && deltaR > -180 || deltaR > 180)
+		{
+			turretGoRight();
+		}
+		else
+		{
+			m_bTurretAligned = true;
+			stopTurret();
+		}
+	}
+	else
+	{
+		m_bEnemySeen = true;
+		m_ixPos = m_EnemyBasePosition.getX();
+
+		float deltaX = getX() - m_EnemyBasePosition.getX();
+		float deltaY = getY() - m_EnemyBasePosition.getY();
+
+		m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
+		m_iturretAngle = m_iangleInDegrees + 180;
+
+		float deltaR = turretTh - m_iturretAngle;
+
+		if (deltaR > 1 && deltaR < 180 || deltaR < -180)
+		{
+			turretGoLeft();
+		}
+		else if (deltaR < -1 && deltaR > -180 || deltaR > 180)
+		{
+			turretGoRight();
+		}
+		else
+		{
+			m_bTurretAligned = true;
+			stopTurret();
+		}
+	}
+
+}
+
+float Instinct::getDistance(Position p_Position)
+{
+	float dx = (float)(p_Position.getX() - getX());
+	float dy = (float)(p_Position.getY() - getY());
+
+	float temp_Distance = sqrt(dx * dx + dy * dy);
+
+	return temp_Distance;
+}
+
+
 
 Graph *Instinct::getGraph() const {
 	return m_Graph;

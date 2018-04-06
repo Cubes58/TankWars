@@ -29,29 +29,27 @@ private:
 	MainStates m_eMainState;
 	DefendingStates m_eDefendingState;
 	AttackingStates m_eAttackingState;
-	/*
-	int m_iEnemyBases = 10;
-	int m_ixPos = 0;
-	int m_iangleInDegrees = 0;
-	int m_iturretAngle = 0;
-	float m_fgetEnemyDistance = 0.0f;
-	*/
-
 	sf::Vector2u m_AimingAt;
 
 	bool m_bSeenBase = false;
 	bool m_bEnemySeen = false;
 	bool m_bBulletSeen = false;
+	bool m_bTurretAligned = false;
+	bool m_bFiring = false;
 
 	int m_iAmmoCount = 12;
 	int m_iOurScore = 0;
 	int m_iEnemyScore = 0;
-
-	bool m_bFiring = false;
+	int m_iEnemyBases = 10;
+	int m_ixPos = 0;
+	int m_iangleInDegrees = 0;
+	int m_iturretAngle = 0;
 
 	float rotPrecision = 5;
+	float m_fgetEnemyDistance = 0.0f;
 
 	Position m_EnemyLastPosition;
+	Position m_EnemyBasePosition;
 public:
 	Instinct();
 	~Instinct();
@@ -68,6 +66,9 @@ public:
 
 	void drive();
 	void Scan();
+
+	void takeAim();
+	float getDistance(Position p_Position);
 
 	Graph *getGraph() const;
 };
