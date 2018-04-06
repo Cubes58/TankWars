@@ -20,7 +20,6 @@ private:
 	sf::Vector2u m_Position;
 	sf::Vector2u m_GraphArrayPosition;
 	sf::Vector2u m_Size;
-	sf::Vector2u m_ParentNode;	// Node you were at before this one.
 
 	NodeState m_State;
 
@@ -32,8 +31,8 @@ private:
 
 	sf::RectangleShape m_Shape;
 
-	int id;
-	float m_neighbourVal;
+	int m_ID;
+	float m_NeighbourValue;
 public:
 	// Constructor.
 	Node() = default;
@@ -52,9 +51,6 @@ public:
 	void setNodeState(NodeState p_NodeState);
 	NodeState getNodeState() const;
 
-	void setParentNode(const sf::Vector2u &p_ParentNode);
-	sf::Vector2u getParentNode();
-
 	sf::Vector2u getGraphArrayPosition();
 
 	void setGValue(float p_GValue);
@@ -66,6 +62,12 @@ public:
 	void setFValue(float p_FValue);
 	float getFValue();
 
+	void setID(int p_ID);
+	int getID();
+
+	void setNeighbourValue(float p_NeighbourValue);
+	float getNeighbourValue();
+
 	// Compare nodes based on their m_FValue - sort by lowest f cost use the less than operator to compare.
 	inline bool operator<(const Node &p_Other) const { 
 		return this->m_FValue < p_Other.m_FValue; 
@@ -73,21 +75,5 @@ public:
 
 	inline bool operator==(const Node &p_Other) const {
 		return this->m_Position == p_Other.m_Position;
-	}
-
-	void setId(int id) {
-		this->id = id;
-	}
-
-	int getId() {
-		return this->id;
-	}
-
-	float getNeighbourVal() {
-		return m_neighbourVal;
-	}
-
-	void setNeighbourVal(float val) {
-		m_neighbourVal = val;
 	}
 };

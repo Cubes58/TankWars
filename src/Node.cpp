@@ -11,8 +11,6 @@ Node::Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf:
 	m_Shape.setOutlineThickness(outLineThinkness);
 	m_Shape.setOutlineColor(sf::Color::Black);
 	setNodeState(m_State);		// Node colour set here.
-
-	m_ParentNode = sf::Vector2u(0, 0);
 }
 
 Node::~Node() {
@@ -100,14 +98,6 @@ NodeState Node::getNodeState() const {
 	return m_State;
 }
 
-void Node::setParentNode(const sf::Vector2u &p_ParentNode) {
-	m_ParentNode = p_ParentNode;
-}
-
-sf::Vector2u Node::getParentNode() {
-	return m_ParentNode;
-}
-
 sf::Vector2u Node::getGraphArrayPosition() {
 	return m_GraphArrayPosition;
 }
@@ -134,4 +124,20 @@ void Node::setFValue(float p_FValue) {
 
 float Node::getFValue() {
 	return m_FValue;
+}
+
+void Node::setID(int p_ID) {
+	this->m_ID = p_ID;
+}
+
+int Node::getID() {
+	return this->m_ID;
+}
+
+void Node::setNeighbourValue(float p_NeighbourValue) {
+	m_NeighbourValue = p_NeighbourValue;
+}
+
+float Node::getNeighbourValue() {
+	return m_NeighbourValue;
 }
