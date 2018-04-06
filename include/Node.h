@@ -11,7 +11,8 @@ enum class NodeState : unsigned int {		/* Must explicitly type cast! */
 	OPEN,
 	CLOSED,
 	CURRENT,
-	BASE
+	BASE,
+	NOTHING
 };
 
 class Node : public sf::Drawable {
@@ -19,13 +20,9 @@ private:
 	sf::Vector2u m_Position;
 	sf::Vector2u m_GraphArrayPosition;
 	sf::Vector2u m_Size;
+	sf::Vector2u m_ParentNode;	// Node you were at before this one.
 
 	NodeState m_State;
-
-	sf::Vector2u m_ParentNodeGraphArrayPosition;	// Node you were at before this one.
-
-	bool m_Active;
-	bool m_Current;
 
 	bool m_IsPath;
 	
@@ -34,10 +31,10 @@ private:
 	float m_FValue;		// Total distance cost, of the node.
 
 	sf::RectangleShape m_Shape;
-public:
-	static const bool s_m_Path = true;
-	static const bool s_m_NotPath = false;
 
+	int id;
+	float m_neighbourVal;
+public:
 	// Constructor.
 	Node() = default;
 	Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
@@ -45,7 +42,7 @@ public:
 
 	// Draw methods.
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;
-	int calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode);
+	float calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode);
 	
 	bool getIsPath();
 	
@@ -55,8 +52,8 @@ public:
 	void setNodeState(NodeState p_NodeState);
 	NodeState getNodeState() const;
 
-	void setParentNodeGraphArrayPosition(const sf::Vector2u &p_ParentNodeGraphArrayPosition);
-	sf::Vector2u getParentNodeGraphArrayPosition();
+	void setParentNode(const sf::Vector2u &p_ParentNode);
+	sf::Vector2u getParentNode();
 
 	sf::Vector2u getGraphArrayPosition();
 
@@ -76,5 +73,21 @@ public:
 
 	inline bool operator==(const Node &p_Other) const {
 		return this->m_Position == p_Other.m_Position;
+	}
+
+	void setId(int id) {
+		this->id = id;
+	}
+
+	int getId() {
+		return this->id;
+	}
+
+	float getNeighbourVal() {
+		return m_neighbourVal;
+	}
+
+	void setNeighbourVal(float val) {
+		m_neighbourVal = val;
 	}
 };
