@@ -1,7 +1,7 @@
 #include "Node.h"
 
-Node::Node(const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State)
-	: m_PixelPosition(p_PixelPosition), m_Size(p_Size), m_State(p_State), m_GraphArrayPosition(p_GraphArrayPosition) {
+Node::Node(int p_ID, const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State)
+	: m_ID(p_ID), m_PixelPosition(p_PixelPosition), m_Size(p_Size), m_State(p_State), m_GraphArrayPosition(p_GraphArrayPosition) {
 
 	// Set some values, so the node can be drawn in debug mode.
 	const float outLineThinkness(-0.5);
@@ -23,10 +23,6 @@ void Node::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) con
 
 int Node::getID() const {
 	return m_ID;
-}
-
-void Node::setID(int p_ID) {
-	m_ID = p_ID;
 }
 
 sf::Vector2u Node::getPixelPosition() const {

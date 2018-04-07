@@ -36,7 +36,7 @@ private:
 public:
 	// Constructor.
 	Node() = default;	/* Default constructor. */
-	Node(const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
+	Node(int p_ID, const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
 
 	// Draw method.
@@ -44,8 +44,6 @@ public:
 	
 	// Accessor methods.
 	int getID() const;
-	void setID(int p_ID);
-
 	sf::Vector2u getPixelPosition() const;
 	sf::Vector2u getGraphArrayPosition() const;
 	sf::Vector2u getSize() const;
