@@ -71,17 +71,18 @@ void Instinct::drive()
 {
 	if (m_Path.size() == 0)
 	{
-		m_Graph->aStarSearchAlgorithm(*m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
+		m_Graph->clearNodes();
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
 	}
 	if (m_Path.size() != 0)
 	{
-		//currentNode = getnode from graph using pixel pos
-		m_CurrentNode = m_Graph->getPixelNode(sf::Vector2u(getX(), getY()));
+		//currentNode = get node from graph using pixel pos
+		m_CurrentNode = &m_Graph->getPixelNode(sf::Vector2u(getX(), getY()));
 		m_TargetNode = m_Path.back();
 
 		//move here
-		int deltaY = getY() - m_TargetNode->getPosition().y;
-		int deltaX = getX() - m_TargetNode->getPosition().x;
+		int deltaY = getY() - m_TargetNode->getPixelPosition().y;
+		int deltaX = getX() - m_TargetNode->getPixelPosition().x;
 		float dTargetAngle = (atan2(deltaY, deltaX) * 180 / PI) + 180;
 		float dTankAngle = pos.getTh();
 		float dDeltaAngle = dTankAngle - dTargetAngle;

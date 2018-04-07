@@ -1,16 +1,16 @@
 #include "Node.h"
 
-Node::Node(const sf::Vector2u &p_Position, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State)
-	: m_Position(p_Position), m_Size(p_Size), m_State(p_State), m_GraphArrayPosition(p_GraphArrayPosition) {
+Node::Node(const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State)
+	: m_PixelPosition(p_PixelPosition), m_Size(p_Size), m_State(p_State), m_GraphArrayPosition(p_GraphArrayPosition) {
 
-	const float outLineThinkness(-0.5);
 	// Set some values, so the node can be drawn in debug mode.
+	const float outLineThinkness(-0.5);
 	m_Shape.setOrigin(sf::Vector2f((float)m_Size.x / 2, (float)m_Size.y / 2));
-	m_Shape.setPosition(static_cast<sf::Vector2f>(m_Position));
+	m_Shape.setPosition(static_cast<sf::Vector2f>(m_PixelPosition));
 	m_Shape.setSize(sf::Vector2f((float)m_Size.x, (float)m_Size.y));
 	m_Shape.setOutlineThickness(outLineThinkness);
 	m_Shape.setOutlineColor(sf::Color::Black);
-	setNodeState(m_State);		// Node colour set here.
+	setNodeState(m_State);		// Its state is set, but not the node colour, so set it here.
 }
 
 Node::~Node() {
@@ -21,39 +21,39 @@ void Node::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) con
 	p_RenderTarget.draw(m_Shape);
 }
 
-float Node::calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode) {
-	int xDistance = p_PreviousNode.getGraphArrayPosition().x - p_GoalNode.getGraphArrayPosition().x;
-	int yDistance = p_PreviousNode.getGraphArrayPosition().y - p_GoalNode.getGraphArrayPosition().y;
-
-	m_HValue = (float)(std::abs(xDistance) + std::abs(yDistance));
-
-	/*int a = p_PreviousNode.getGraphArrayPosition().x - p_GoalNode.getGraphArrayPosition().x;
-	a = std::pow(a, 2);
-
-	int b = p_PreviousNode.getGraphArrayPosition().y - p_GoalNode.getGraphArrayPosition().y;
-	b = std::pow(b, 2);
-
-	m_HValue = std::sqrt(a + b);*/
-
-	return m_HValue;
+int Node::getID() const {
+	return m_ID;
 }
 
-bool Node::getIsPath() {
-	return m_IsPath;
+void Node::setID(int p_ID) {
+	m_ID = p_ID;
 }
 
-sf::Vector2u Node::getPosition() {
-	return m_Position;
+sf::Vector2u Node::getPixelPosition() const {
+	return m_PixelPosition;
 }
 
-sf::Vector2u Node::getSize() {
+sf::Vector2u Node::getGraphArrayPosition() const {
+	return m_GraphArrayPosition;
+}
+
+sf::Vector2u Node::getSize() const {
 	return m_Size;
 }
 
-void Node::setNodeState(NodeState p_State) {
+bool Node::getIsPath() const {
+	return m_IsPath;
+}
+
+NodeState Node::getNodeState() const {
+	return m_State;
+}
+
+void Node::setNodeState(const NodeState &p_State) {
 	m_State = p_State;
 
 	// Set the colour of the node, for debugging, depending on its set type.
+	// Also, set whether it's a possible path or not, based on its NodeState.
 	switch (m_State) {
 	case NodeState::PATH:
 		m_Shape.setFillColor(sf::Color(255, 0, 0, 120));		 // Red.
@@ -72,7 +72,7 @@ void Node::setNodeState(NodeState p_State) {
 		m_IsPath = true;
 		break;
 	case::NodeState::OPEN:
-		m_Shape.setFillColor(sf::Color(255, 0, 0, 70));			// Orange.
+		m_Shape.setFillColor(sf::Color(255, 110, 32, 120));		// Orange.
 		m_IsPath = true;
 		break;
 	case::NodeState::CLOSED:
@@ -92,56 +92,40 @@ void Node::setNodeState(NodeState p_State) {
 		m_IsPath = true;
 		break;
 	default:
-		m_Shape.setFillColor(sf::Color(255, 255, 255, 150));	// Default: White.
+		m_Shape.setFillColor(sf::Color(255, 255, 255, 175));	// Default: White.
 		m_IsPath = false;
 		break;
 	}
 }
 
-NodeState Node::getNodeState() const {
-	return m_State;
-}
-
-sf::Vector2u Node::getGraphArrayPosition() {
-	return m_GraphArrayPosition;
+float Node::getGValue() const {
+	return m_GValue;
 }
 
 void Node::setGValue(float p_GValue) {
 	m_GValue = p_GValue;
 }
 
-float Node::getGValue() {
-	return m_GValue;
+float Node::getHValue() const {
+	return m_HValue;
 }
 
 void Node::setHValue(float p_HValue) {
 	m_HValue = p_HValue;
 }
 
-float Node::getHValue() {
-	return m_HValue;
+float Node::getFValue() const {
+	return m_FValue;
 }
 
 void Node::setFValue(float p_FValue) {
 	m_FValue = p_FValue;
 }
 
-float Node::getFValue() {
-	return m_FValue;
-}
-
-void Node::setID(int p_ID) {
-	m_ID = p_ID;
-}
-
-int Node::getID() {
-	return m_ID;
+float Node::getNeighbourValue() const {
+	return m_NeighbourValue;
 }
 
 void Node::setNeighbourValue(float p_NeighbourValue) {
 	m_NeighbourValue = p_NeighbourValue;
-}
-
-float Node::getNeighbourValue() {
-	return m_NeighbourValue;
 }
