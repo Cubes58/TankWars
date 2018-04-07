@@ -22,13 +22,13 @@ public:
 
 	bool aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path);
 	std::vector<Node*> getNeighbours(Node &p_Node);
-	std::list<Node*> constructPath(Node &p_GoalNode, std::map<int, Node>);
+	std::list<Node*> constructPath(Node &p_GoalNode, std::map<int, Node> p_CameFrom);
 	float calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode);
 
 	void clearNodes();
 
-	Node &getPixelNode(const sf::Vector2u &p_NodePixelPosition);
-	Node &getNode(const sf::Vector2u &p_NodeGraphPosition);
+	Node &getPixelNode(const sf::Vector2u &p_NodePixelPosition) const;
+	Node &getNode(const sf::Vector2u &p_NodeGraphPosition) const;
 	Node &getNode(int p_ID) const;
 
 	NodeState getNodeState(const sf::Vector2u &p_GridPosition) const;

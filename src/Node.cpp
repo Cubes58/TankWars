@@ -68,11 +68,11 @@ void Node::setNodeState(const NodeState &p_State) {
 		m_IsPath = true;
 		break;
 	case::NodeState::OPEN:
-		m_Shape.setFillColor(sf::Color(255, 110, 32, 120));		// Orange.
+		m_Shape.setFillColor(sf::Color(132, 23, 255, 120));		// Purple.
 		m_IsPath = true;
 		break;
 	case::NodeState::CLOSED:
-		m_Shape.setFillColor(sf::Color(0, 255, 0, 120));		// Green.
+		m_Shape.setFillColor(sf::Color(255, 110, 32, 120));		// Orange.
 		m_IsPath = true;
 		break;
 	case::NodeState::CURRENT:

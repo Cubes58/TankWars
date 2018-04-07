@@ -88,7 +88,6 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 
 			// Now we know the node isn't on the closed list,
 			// Check whether it's on the open list.
-
 			bool inOpenList = false;
 			for (auto &i : openList) {
 				if (*neighbourNode == i) {
@@ -113,6 +112,16 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 		}
 		// Add the best neighbour to the cameFrom map, as we're taking that route, to the goal. (Neighbour with the lowest F value.)
 		cameFrom[bestNeighbourNode->getID()] = currentNode;
+
+		// DEBUG PURPOSES: To see the closed/open list, in debug mode.
+		for (auto &i : closedList) {
+			if (!(i.getNodeState() == NodeState::START || i.getNodeState() == NodeState::GOAL))
+				getNode(i.getID()).setNodeState(NodeState::CLOSED);
+		}
+		for (auto &i : openList) {
+			if (!(i.getNodeState() == NodeState::START || i.getNodeState() == NodeState::GOAL))
+				getNode(i.getID()).setNodeState(NodeState::OPEN);
+		}
 	}
 
 	return false;		// A path wasn't found.
@@ -150,17 +159,19 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 	return neighbours;
 }
 
-std::list<Node*> Graph::constructPath(Node &p_GoalNode, std::map<int, Node> cameFrom) {
+std::list<Node*> Graph::constructPath(Node &p_GoalNode, std::map<int, Node> p_CameFrom) {
 	std::list<Node*> path;
 	
 	path.push_back(&p_GoalNode); // Add the goal node, to path.
-	for (auto &i : cameFrom) {	 /* Go through the cameFrom map, adding each node to the path, and getting its parent, adding that to the path, etc. */
+	for (auto &i : p_CameFrom) {	 /* Go through the p_CameFrom map, adding each node to the path, and getting its parent, adding that to the path, etc. */
 		Node* pathNode = &getNode(i.first);
 		if (!(pathNode->getNodeState() == NodeState::START || pathNode->getNodeState() == NodeState::GOAL))
 			pathNode->setNodeState(NodeState::PATH);
-		
+
 		path.push_back(pathNode);
 	}	
+	// Set the node at the back to the start node, as it is. For debugging purposes!
+	path.back()->setNodeState(NodeState::START);
 
 	return path;	// Return the path, to be used.
 }
@@ -170,7 +181,7 @@ float Graph::calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode) 
 	int yDistance = p_CurrentNode.getGraphArrayPosition().y - p_GoalNode.getGraphArrayPosition().y;
 
 	// Also want this value to be set for the node, so we can use it within the A star algorithm (getHValue()).
-	// abs ensure we're always the absolute value.
+	// std::abs ensure we're always using the absolute value.
 	p_CurrentNode.setHValue((float)(std::abs(xDistance) + std::abs(yDistance)));
 	return p_CurrentNode.getHValue();
 }
@@ -185,7 +196,7 @@ void Graph::clearNodes() {
 	}
 }
 
-Node &Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
+Node &Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) const {
 	// Give it a pixel position, it'll check every node's area, looking for that pixel within it (within the node's width/height).
 	for (auto &i : m_Nodes) {
 		for (auto &j : i) {
@@ -197,7 +208,7 @@ Node &Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
 	}
 }
 
-Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) {
+Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) const {
 	return *m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x];
 }
 
