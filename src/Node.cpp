@@ -27,13 +27,13 @@ float Node::calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode) 
 
 	m_HValue = (float)(std::abs(xDistance) + std::abs(yDistance));
 
-	//int a = p_PreviousNode.getGraphArrayPosition().x - p_GoalNode.getGraphArrayPosition().x;
-	//a = std::pow(a, 2);
+	/*int a = p_PreviousNode.getGraphArrayPosition().x - p_GoalNode.getGraphArrayPosition().x;
+	a = std::pow(a, 2);
 
-	//int b = p_PreviousNode.getGraphArrayPosition().y - p_GoalNode.getGraphArrayPosition().y;
-	//b = std::pow(b, 2);
+	int b = p_PreviousNode.getGraphArrayPosition().y - p_GoalNode.getGraphArrayPosition().y;
+	b = std::pow(b, 2);
 
-	//m_HValue = std::sqrt(a + b);
+	m_HValue = std::sqrt(a + b);*/
 
 	return m_HValue;
 }
@@ -46,17 +46,21 @@ sf::Vector2u Node::getPosition() {
 	return m_Position;
 }
 
+sf::Vector2u Node::getSize() {
+	return m_Size;
+}
+
 void Node::setNodeState(NodeState p_State) {
 	m_State = p_State;
 
 	// Set the colour of the node, for debugging, depending on its set type.
 	switch (m_State) {
 	case NodeState::PATH:
-		m_Shape.setFillColor(sf::Color(0, 0, 0, 255));		 // Red.
+		m_Shape.setFillColor(sf::Color(255, 0, 0, 120));		 // Red.
 		m_IsPath = true;
 		break;
 	case NodeState::WALL:
-		m_Shape.setFillColor(sf::Color(0, 0, 0, 150));			// Black.
+		m_Shape.setFillColor(sf::Color(0, 0, 0, 120));			// Black.
 		m_IsPath = false;
 		break;
 	case NodeState::GOAL:
@@ -68,19 +72,19 @@ void Node::setNodeState(NodeState p_State) {
 		m_IsPath = true;
 		break;
 	case::NodeState::OPEN:
-		m_Shape.setFillColor(sf::Color(255, 0, 0, 70));		// Orange.
+		m_Shape.setFillColor(sf::Color(255, 0, 0, 70));			// Orange.
 		m_IsPath = true;
 		break;
 	case::NodeState::CLOSED:
-		m_Shape.setFillColor(sf::Color(0, 255, 0, 70));			// Green.
+		m_Shape.setFillColor(sf::Color(0, 255, 0, 120));		// Green.
 		m_IsPath = true;
 		break;
 	case::NodeState::CURRENT:
-		m_Shape.setFillColor(sf::Color(255, 12, 225, 150));		// Magenta.
+		m_Shape.setFillColor(sf::Color(255, 12, 225, 120));		// Magenta.
 		m_IsPath = true;
 		break;
 	case::NodeState::BASE:
-		m_Shape.setFillColor(sf::Color(45, 255, 239, 160));		// Cyan.
+		m_Shape.setFillColor(sf::Color(45, 255, 239, 120));		// Cyan.
 		m_IsPath = false;
 		break;
 	case::NodeState::NOTHING:
@@ -127,11 +131,11 @@ float Node::getFValue() {
 }
 
 void Node::setID(int p_ID) {
-	this->m_ID = p_ID;
+	m_ID = p_ID;
 }
 
 int Node::getID() {
-	return this->m_ID;
+	return m_ID;
 }
 
 void Node::setNeighbourValue(float p_NeighbourValue) {

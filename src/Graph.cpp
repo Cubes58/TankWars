@@ -9,19 +9,18 @@ Graph::Graph() {
 
 	for (int column = 0; column < s_m_ColumnSize; column++) {
 		for (int row = 0; row < s_m_RowSize; row++) {
-			Node *temp;
+			Node *node;
 			// If the node is on the edge of the map set it to a wall.
 			if (column == 0 || column == s_m_ColumnSize - 1 || row == 0 || row == s_m_RowSize - 1 || row == s_m_RowSize - 2) {
-				temp = new Node(sf::Vector2u((column * s_m_PixelSize) + rowPositionOffset, (row * s_m_PixelSize) + columnPositionOffset),
+				node = new Node(sf::Vector2u((column * s_m_PixelSize) + rowPositionOffset, (row * s_m_PixelSize) + columnPositionOffset),
 					sf::Vector2u(s_m_PixelSize, s_m_PixelSize), sf::Vector2u(column, row), NodeState::WALL);
 			}
 			else {	/* Else set it to nothing, so it's clear. */
-				temp = new Node(sf::Vector2u((column * s_m_PixelSize) + rowPositionOffset, (row * s_m_PixelSize) + columnPositionOffset),
+				node = new Node(sf::Vector2u((column * s_m_PixelSize) + rowPositionOffset, (row * s_m_PixelSize) + columnPositionOffset),
 					sf::Vector2u(s_m_PixelSize, s_m_PixelSize), sf::Vector2u(column, row), NodeState::NOTHING);
 			}
-			id++;
-			temp->setID(id);
-			m_Nodes[row][column] = temp;
+			node->setID(id++);
+			m_Nodes[row][column] = node;
 		}
 	}
 }
@@ -46,6 +45,10 @@ void Graph::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) con
 }
 
 bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path) {	
+	// Set the start and goal Node states, so they can be seen on debug mode.
+	p_StartNode.setNodeState(NodeState::START);
+	p_GoalNode.setNodeState(NodeState::GOAL);
+	
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
 
@@ -56,9 +59,6 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 
 	// Set the starting node.
 	Node currentNode = p_StartNode;
-	p_StartNode.setNodeState(NodeState::START);
-
-	//currentNode.setParentNode(currentNode.getGraphArrayPosition());		// Set it to itself.
 	currentNode.setGValue(0);
 	currentNode.setFValue(currentNode.getGValue() + currentNode.calculateManhattanHeuristic(currentNode, p_GoalNode));
 	
@@ -74,14 +74,13 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 		currentNode.setNodeState(NodeState::CLOSED);
 		closedList.push_back(currentNode);	// Add it to the closed list.
 		openList.pop_front();
-				
-		std::cout << "Cur: " << currentNode.getID() << std::endl;
 
 		if (currentNode == p_GoalNode) {
 			p_Path = constructPath(p_GoalNode, cameFrom);
 			return true;		// Path found.
 		}		
 
+		Node *bestNeighbourNode = &currentNode;
 		for (auto &neighbourNode : getNeighbours(currentNode)) {
 			float newGCost = currentNode.getGValue() + neighbourNode->getNeighbourValue();											
 
@@ -102,14 +101,12 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 			if (!inOpenList)
 				openList.push_back(*neighbourNode);
 
-			std::cout << "Nei: " << neighbourNode->getID() << std::endl;
-
 			float best = currentNode.getFValue();
-			if (neighbourNode->getFValue() >= best)
+			if (best < neighbourNode->getFValue() && bestNeighbourNode->getFValue() < neighbourNode->getFValue()) {
 				continue;
-
-			cameFrom[neighbourNode->getID()] = currentNode;				
+			}			
 		}
+		cameFrom[bestNeighbourNode->getID()] = currentNode;
 	}
 
 	return false;		// A path wasn't found.
@@ -120,52 +117,43 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 	static const float normalCost(1);
 
 	std::vector<Node*> neighbours;
-	std::vector<bool> diagonals;
-
 	for (int column = p_Node.getGraphArrayPosition().x - 1; column != p_Node.getGraphArrayPosition().x + 2; column++) {
 		for (int row = p_Node.getGraphArrayPosition().y - 1; row != p_Node.getGraphArrayPosition().y + 2; row++) {
 			if (p_Node.getGraphArrayPosition().x == column && p_Node.getGraphArrayPosition().y == row)
-				continue;
+				continue;	// Don't want to add the current node to the neighbours.
 
+			// Ensure the node is within the array's bounds.
 			if (column >= 0 && column <= s_m_ColumnSize && row >= 0 && row <= s_m_RowSize) {
-				Node* temp = &getNode(sf::Vector2u(column, row));
-				// Check whether the node is a path node.
-				if (temp->getIsPath()) {
-					neighbours.push_back(temp);
-
-					if (column == p_Node.getGraphArrayPosition().x - 1 || column == p_Node.getGraphArrayPosition().x + 1) {
-						if (row == p_Node.getGraphArrayPosition().y - 1 || row == p_Node.getGraphArrayPosition().y + 1)
-							diagonals.push_back(true);
-						else
-							diagonals.push_back(false);
+				Node* neighbourNode = &getNode(sf::Vector2u(column, row));
+				// Check whether the node is a path node - can be moved along.
+				if (neighbourNode->getIsPath()) {
+					// Check whether the node is diagonal from the current node, or not, as if it is then use a different (diagonal cost).
+					if ((column == p_Node.getGraphArrayPosition().x - 1 || column == p_Node.getGraphArrayPosition().x + 1) && 
+						(row == p_Node.getGraphArrayPosition().y - 1 || row == p_Node.getGraphArrayPosition().y + 1)) {
+						neighbourNode->setNeighbourValue(diagonalCost);
 					}
 					else
-						diagonals.push_back(false);
+						neighbourNode->setNeighbourValue(normalCost);
+					neighbours.push_back(neighbourNode);			// Add the neighbour node to the vector of neighbours.
 				}
 			}
 		}
 	}
 
-	for (int i = 0; i < neighbours.size(); i++) {
-		if (diagonals[i])
-			neighbours[i]->setNeighbourValue(diagonalCost);
-		else 
-			neighbours[i]->setNeighbourValue(normalCost);
-		//neighbours[i]->setParentNode(sf::Vector2u(p_Node.getGraphArrayPosition().x, p_Node.getGraphArrayPosition().y));
-	}
-
+	// Return the neighbours.
 	return neighbours;
 }
 
 std::list<Node*> Graph::constructPath(Node &p_GoalNode, std::map<int, Node> cameFrom) {
 	std::list<Node*> path;
 	
-	path.push_back(&p_GoalNode);
-	for (auto & i : cameFrom) {		
-		Node* temp = &getNode(i.first);
-		temp->setNodeState(NodeState::PATH);
+	path.push_back(&p_GoalNode); 
+	for (auto &i : cameFrom) {		
+		Node* pathNode = &getNode(i.first);
+		if (!(pathNode->getNodeState() == NodeState::START || pathNode->getNodeState() == NodeState::GOAL))
+			pathNode->setNodeState(NodeState::PATH);
 		
-		path.push_back(temp);
+		path.push_back(pathNode);
 	}	
 
 	return path;
@@ -179,24 +167,22 @@ void Graph::clearNodes() {
 	}
 }
 
-Node *Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
+Node &Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) {
 	for (auto &i : m_Nodes) {
 		for (auto &j : i) {
-			if ((j->getPosition().x - 10 <= p_NodePixelPosition.x && j->getPosition().x + 10 >= p_NodePixelPosition.x)
-				&& (j->getPosition().y - 10 <= p_NodePixelPosition.y && j->getPosition().y + 10 >= p_NodePixelPosition.y)) {
-				return j;
+			if ((j->getPosition().x - (j->getSize().x / 2) <= p_NodePixelPosition.x && j->getPosition().x + (j->getSize().x / 2) >= p_NodePixelPosition.x)
+				&& (j->getPosition().y - (j->getSize().y / 2) <= p_NodePixelPosition.y && j->getPosition().y + (j->getSize().y / 2) >= p_NodePixelPosition.y)) {
+				return *j;
 			}
 		}
 	}
-	
-	return nullptr;
 }
 
 Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) {
 	return *m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x];
 }
 
-Node & Graph::getNode(int id) const {
+Node &Graph::getNode(int id) const {
 	for (auto & i : m_Nodes) {
 		for (auto & j : i) {
 			if (j->getID() == id)

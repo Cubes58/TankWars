@@ -17,6 +17,7 @@ enum class NodeState : unsigned int {		/* Must explicitly type cast! */
 
 class Node : public sf::Drawable {
 private:
+	int m_ID;
 	sf::Vector2u m_Position;
 	sf::Vector2u m_GraphArrayPosition;
 	sf::Vector2u m_Size;
@@ -28,11 +29,9 @@ private:
 	float m_GValue;		// Distance cost of current node to start node.
 	float m_HValue;		// Distance cost of current node to goal node.
 	float m_FValue;		// Total distance cost, of the node.
+	float m_NeighbourValue;
 
 	sf::RectangleShape m_Shape;
-
-	int m_ID;
-	float m_NeighbourValue;
 public:
 	// Constructor.
 	Node() = default;
@@ -43,10 +42,11 @@ public:
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;
 	float calculateManhattanHeuristic(Node &p_PreviousNode, Node &p_GoalNode);
 	
-	bool getIsPath();
-	
 	// Accessor methods.
+	bool getIsPath();
+
 	sf::Vector2u getPosition();
+	sf::Vector2u getSize();
 
 	void setNodeState(NodeState p_NodeState);
 	NodeState getNodeState() const;
@@ -69,11 +69,11 @@ public:
 	float getNeighbourValue();
 
 	// Compare nodes based on their m_FValue - sort by lowest f cost use the less than operator to compare.
-	inline bool operator<(const Node &p_Other) const { 
+	inline bool operator < (const Node &p_Other) const { 
 		return this->m_FValue < p_Other.m_FValue; 
 	}
 
-	inline bool operator==(const Node &p_Other) const {
+	inline bool operator == (const Node &p_Other) const {
 		return this->m_Position == p_Other.m_Position;
 	}
 };

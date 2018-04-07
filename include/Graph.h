@@ -26,7 +26,7 @@ public:
 
 	void clearNodes();
 
-	Node *getPixelNode(const sf::Vector2u &p_NodePixelPosition);
+	Node &getPixelNode(const sf::Vector2u &p_NodePixelPosition);
 	Node &getNode(const sf::Vector2u &p_NodeGraphPosition);
 	Node &getNode(int id) const;
 
