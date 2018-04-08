@@ -30,8 +30,8 @@ void Instinct::collided() {
 }
 
 void Instinct::markTarget(Position p_Position) {
-
-	m_EnemyBasePosition = p_Position;
+	Memorise(p_Position, false);
+	/*m_EnemyBasePosition = p_Position;
 
 	m_bEnemySeen = true;
 	m_ixPos = p_Position.getX();
@@ -42,17 +42,17 @@ void Instinct::markTarget(Position p_Position) {
 	m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
 	m_iturretAngle = m_iangleInDegrees + 180;
 
-	takeAim();
+	takeAim();*/
 	
 }
 
 void Instinct::markEnemy(Position p_Position) {
-	m_EnemyLastPosition = p_Position;
-	takeAim();
+	/*m_EnemyLastPosition = p_Position;
+	takeAim();*/
 }
 
 void Instinct::markBase(Position p_Position) {
-
+	Memorise(p_Position, true);
 }
 
 void Instinct::markShell(Position p_Position) {
@@ -67,13 +67,13 @@ void Instinct::score(int p_ThisScore, int p_EnemyScore) {
 
 }
 
-void Instinct::drive()
+bool Instinct::drive()
 {
-	if (m_Path.size() == 0)
+	/*if (m_Path.size() == 0)
 	{
 		m_Graph->clearNodes();
 		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
-	}
+	}*/
 	if (m_Path.size() != 0)
 	{
 		//currentNode = get node from graph using pixel pos
@@ -120,9 +120,11 @@ void Instinct::drive()
 			else
 			{
 				stop();
+				return true;
 			}
 		}
 	}
+	return false;
 }
 
 void Instinct::Scan()
@@ -133,24 +135,103 @@ void Instinct::Scan()
 	{
 		scanStarted = true;
 		startTurretAngle = turretTh;
-		if (debugMode)
-		{
-			std::cout << startTurretAngle << std::endl;
-		}
 		turretGoRight();
 	}
+
 	if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle)
 	{
-		if (debugMode)
-		{
-			std::cout << "scan finished" << std::endl;
-		}
 		scanStarted = false;
 	}
-	if (scanStarted && debugMode)
+}
+
+void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
+{
+	bool alreadyMemorised = false;
+	if (p_IsAlly)
 	{
-		std::cout << turretTh << std::endl; //0 is to the east
+		if (m_AllyBases.size() != 0)
+		{
+			for (int i = 0; i < m_AllyBases.size(); i++)
+			{
+				if (p_BasePos.getX() == m_AllyBases[i].getX() && p_BasePos.getY() == m_AllyBases[i].getY()) {
+					alreadyMemorised = true;
+				}
+			}
+			if (!alreadyMemorised) {
+				m_AllyBases.push_back(p_BasePos);
+			}
+		}
+		else
+		{ 
+			m_AllyBases.push_back(p_BasePos);
+		}
 	}
+	else
+	{
+		if (m_EnemyBases.size() != 0)
+		{
+			for (int i = 0; i < m_EnemyBases.size(); i++)
+			{
+				if (p_BasePos.getX() == m_EnemyBases[i].getX() && p_BasePos.getY() == m_EnemyBases[i].getY()) {
+					alreadyMemorised = true;
+				}
+			}
+			if (!alreadyMemorised) {
+				m_EnemyBases.push_back(p_BasePos);
+			}
+		}
+		else
+		{
+			m_EnemyBases.push_back(p_BasePos);
+		}
+	}
+}
+
+bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig currently
+{
+	static bool nearestQuadCheck = false;
+	static const Position quadrants[4] = {
+		Position(195.0f, 142.5f), //upper left
+		Position(585.0f,142.5f), //upper right
+		Position(585.0f, 427.5f), //lower right
+		Position(195.0f, 427.5f)}; //lower left
+	static int nearestQuad = 0;
+
+	if (nearestQuadCheck == false)
+	{
+		nearestQuadCheck = true;
+		float PrevDist = getDistance(quadrants[0]);
+		for (int i = 0; i < sizeof(quadrants) / sizeof(*quadrants); i++) {
+			float NextDist = getDistance(quadrants[i]);
+			if (NextDist < PrevDist)
+			{
+				PrevDist = NextDist;
+				nearestQuad = i;
+			}
+		}
+	}
+
+	static int quadCounter = 0;
+	static int currentQuad = nearestQuad;
+	static bool isTravelling = false;
+	if (isTravelling == false)
+	{
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
+		{
+			currentQuad = 0;
+		}
+		isTravelling = true;
+	}
+	if (drive()) {
+		quadCounter++;
+		isTravelling = false;
+	}
+	if (quadCounter >= 3) // after reaching the start quad and anything afterwards you have finished
+	{
+		return true;
+	}
+	return false;
 }
 
 void Instinct::takeAim()

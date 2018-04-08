@@ -48,6 +48,9 @@ private:
 	float rotPrecision = 5;
 	float m_fgetEnemyDistance = 0.0f;
 
+	std::vector<Position> m_AllyBases;
+	std::vector<Position> m_EnemyBases;
+
 	Position m_EnemyLastPosition;
 	Position m_EnemyBasePosition;
 public:
@@ -64,8 +67,10 @@ public:
 	bool isFiring();
 	void score(int p_ThisScore, int p_EnemyScore);
 
-	void drive();
+	bool drive();
 	void Scan();
+	void Memorise(Position p_BasePos, bool p_IsAlly);
+	bool QuadSearch();
 
 	void takeAim();
 	float getDistance(Position p_Position);
