@@ -186,10 +186,10 @@ float Graph::calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode) 
 	return p_CurrentNode.getHValue();
 }
 
-void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NodeWeight) {
+void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSearchDistance) {
 	// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
-	for (int xPosition = p_BasePosition.x - p_NodeWeight; xPosition < p_BasePosition.x + (p_NodeWeight * 2); xPosition += p_NodeWeight) {
-		for (int yPosition = p_BasePosition.y; yPosition < p_BasePosition.y + (p_NodeWeight * 2); yPosition += p_NodeWeight) {
+	for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += p_NeighbourSearchDistance) {
+		for (int yPosition = p_BasePosition.y; yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += p_NeighbourSearchDistance) {
 			getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
 		}
 	}
