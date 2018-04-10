@@ -32,7 +32,9 @@ private:
 	sf::Vector2u m_AimingAt;
 
 	bool m_bSeenBase = false;
+	bool m_bCanScan = false;
 	bool m_bEnemySeen = false;
+	bool m_bFriendlySeen = false;
 	bool m_bBulletSeen = false;
 	bool m_bTurretAligned = false;
 	bool m_bFiring = false;
@@ -68,12 +70,14 @@ public:
 	void score(int p_ThisScore, int p_EnemyScore);
 
 	bool drive();
-	void Scan();
+	bool Scan(bool canScan);
 	void Memorise(Position p_BasePos, bool p_IsAlly);
 	bool QuadSearch();
 
 	void takeAim();
-	void prepareFire(Position p_Position, bool isEnemy);
+	bool takeAim(Position p_Position);
+	void fireEnemy(Position p_Position, bool isEnemy);
+	void fireBases();
 	float getDistance(Position p_Position);
 
 	Graph *getGraph() const;

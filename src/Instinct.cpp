@@ -3,13 +3,17 @@
 
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
+	//Debugging Enums
+	m_eMainState = MainStates::Attacking;
+	m_eAttackingState = AttackingStates::Attacking;
+	
 
 	//Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 20));
 	//tempNode->setNodeState(NodeState::GOAL);
 	//m_Path.push_back(tempNode);
 	//m_eMainState = MainStates::Attacking;
 	//m_eAttackingState = AttackingStates::Locating;
-	//m_Graph->aStarSearchAlgorithm(*m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(5, 15)), m_Path);
+	//m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 400)), m_Path);
 }
 
 Instinct::~Instinct() {
@@ -21,41 +25,34 @@ void Instinct::reset() {
 }
 
 void Instinct::move() { //called every frame
-	//Scan();
+	//Debugging
+	//takeAim();
 	//drive();
-	QuadSearch();
+	//QuadSearch();
 }
 
 void Instinct::collided() {
 
 }
 
-void Instinct::markTarget(Position p_Position) {
+void Instinct::markTarget(Position p_Position) 
+{
 	Memorise(p_Position, false);
 	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
-	/*m_EnemyBasePosition = p_Position;
-
-	m_bEnemySeen = true;
-	m_ixPos = p_Position.getX();
-
-	float deltaX = getX() - p_Position.getX();
-	float deltaY = getY() - p_Position.getY();
-
-	m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
-	m_iturretAngle = m_iangleInDegrees + 180;
-
-	takeAim();*/
+	takeAim();
 	
 }
 
 void Instinct::markEnemy(Position p_Position) {
-	/*m_EnemyLastPosition = p_Position;
-	takeAim();*/
+	m_EnemyLastPosition = p_Position;
+	takeAim();
 }
 
 void Instinct::markBase(Position p_Position) {
 	Memorise(p_Position, true);
+	takeAim();
 	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
+	m_bFriendlySeen = true;
 	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
 	//
 	//}
@@ -133,21 +130,28 @@ bool Instinct::drive()
 	return false;
 }
 
-void Instinct::Scan()
+bool Instinct::Scan(bool canScan)
 {
-	static bool scanStarted(false);
-	static float startTurretAngle(turretTh);
-	if (scanStarted == false)
+	if (!canScan)
 	{
-		scanStarted = true;
-		startTurretAngle = turretTh;
-		turretGoRight();
-	}
 
-	if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle)
-	{
-		scanStarted = false;
+		static bool scanStarted(false);
+		static float startTurretAngle(turretTh);
+		if (scanStarted == false)
+		{
+			scanStarted = true;
+			startTurretAngle = turretTh;
+			turretGoRight();
+		}
+
+		if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle - 1)
+		{
+			scanStarted = false;
+			return true;
+		}
+		return false;
 	}
+	return true;
 }
 
 void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
@@ -197,10 +201,10 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig cur
 {
 	static bool nearestQuadCheck = false;
 	static const Position quadrants[4] = {
-		Position(195.0f, 142.5f), //upper left
-		Position(585.0f,142.5f), //upper right
-		Position(585.0f, 427.5f), //lower right
-		Position(195.0f, 427.5f)}; //lower left
+		Position(195, 142), //upper left
+		Position(585, 142), //upper right
+		Position(585, 427), //lower right
+		Position(195, 427)}; //lower left
 	static int nearestQuad = 0;
 
 	if (nearestQuadCheck == false)
@@ -220,9 +224,11 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig cur
 	static int quadCounter = 0;
 	static int currentQuad = nearestQuad;
 	static bool isTravelling = false;
+
 	if (isTravelling == false)
 	{
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		std::cout << "!" << std::endl;
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
 		if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
 		{
 			currentQuad = 0;
@@ -246,70 +252,70 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig cur
 
 void Instinct::takeAim()
 {
-	float temp_enemy = getDistance(m_EnemyLastPosition);
-	float temp_enemyBase = getDistance(m_EnemyBasePosition);
+	/*float temp_enemy = getDistance(m_EnemyLastPosition);
+	float temp_enemyBase = getDistance(m_EnemyBasePosition);*/
 
-	if (temp_enemy < temp_enemyBase)
-	{
-
-		m_bEnemySeen = true;
-		m_ixPos = m_EnemyLastPosition.getX();
-
-		float deltaX = getX() - m_EnemyLastPosition.getX();
-		float deltaY = getY() - m_EnemyLastPosition.getY();
-
-		m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
-		m_iturretAngle = m_iangleInDegrees + 180;
-
-		float deltaR = turretTh - m_iturretAngle;
-
-		if (deltaR > 1 && deltaR < 180 || deltaR < -180)
+		takeAim(m_EnemyLastPosition);
+		if (m_eMainState == MainStates::Defending && m_eDefendingState == DefendingStates::Engaging)
 		{
-			turretGoLeft();
+			fireEnemy(m_EnemyLastPosition, m_bEnemySeen);
 		}
-		else if (deltaR < -1 && deltaR > -180 || deltaR > 180)
-		{
-			turretGoRight();
-		}
-		else
-		{
-			m_bTurretAligned = true;
-			stopTurret();
-		}
-	}
-	else
-	{
-		m_bEnemySeen = true;
-		m_ixPos = m_EnemyBasePosition.getX();
 
-		float deltaX = getX() - m_EnemyBasePosition.getX();
-		float deltaY = getY() - m_EnemyBasePosition.getY();
-
-		m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
-		m_iturretAngle = m_iangleInDegrees + 180;
-
-		float deltaR = turretTh - m_iturretAngle;
-
-		if (deltaR > 1 && deltaR < 180 || deltaR < -180)
+		if (m_eMainState == MainStates::Attacking && m_eAttackingState == AttackingStates::Attacking)
 		{
-			turretGoLeft();
+			//takeAim(m_EnemyBasePosition);
+			fireBases();
 		}
-		else if (deltaR < -1 && deltaR > -180 || deltaR > 180)
-		{
-			turretGoRight();
-		}
-		else
-		{
-			m_bTurretAligned = true;
-			stopTurret();
-		}
-	}
 
 }
 
-void Instinct::prepareFire(Position p_Position, bool isEnemy)
+bool Instinct::takeAim(Position p_Position)
+{
+	m_ixPos = p_Position.getX();
+
+	float deltaX = getX() - p_Position.getX();
+	float deltaY = getY() - p_Position.getY();
+
+	m_iangleInDegrees = atan2(deltaY, deltaX) * 180 / PI;
+	m_iturretAngle = m_iangleInDegrees + 180;
+
+	float deltaR = turretTh - m_iturretAngle;
+
+	if (deltaR > 1 && deltaR < 180 || deltaR < -180)
+	{
+		turretGoLeft();
+	}
+	else if (deltaR < -1 && deltaR > -180 || deltaR > 180)
+	{
+		turretGoRight();
+	}
+	else
+	{
+		stopTurret();
+		m_bTurretAligned = true;
+	}
+	return false;
+}
+
+void Instinct::fireEnemy(Position p_Position, bool isEnemy)
 {
 
+}
+
+void Instinct::fireBases()
+{
+	//TODO - Pass bases into getDistance and sort based off that distance
+	/*for (int i = 0; i < m_EnemyBases.size(); i++)
+	{
+		
+	}*/
+
+	takeAim(m_EnemyBases[0]);
+
+	if (m_bTurretAligned)
+	{
+		m_bFiring = true;
+	}
 }
 
 float Instinct::getDistance(Position p_Position)
