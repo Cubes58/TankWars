@@ -38,5 +38,5 @@ public:
 	void setNodeState(const sf::Vector2u &p_GridPosition, const NodeState &p_NodeState);
 
 	std::vector<sf::Vector2u> &getBasesFound();
-	bool accountedForBase(const sf::Vector2f &p_Position);
+	bool accountedForBase(const sf::Vector2u &p_Position);
 };

@@ -262,8 +262,8 @@ std::vector<sf::Vector2u> &Graph::getBasesFound() {
 	return m_BasesFound;
 }
 
-bool Graph::accountedForBase(const sf::Vector2f &p_Position) {
-	for (auto &i : getBasesFound()) {
+bool Graph::accountedForBase(const sf::Vector2u &p_Position) {
+	for (auto &i : m_BasesFound) {
 		if (i.x == p_Position.x && i.y == p_Position.y) {
 			return true;
 		}
