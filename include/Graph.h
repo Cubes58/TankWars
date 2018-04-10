@@ -14,6 +14,8 @@ private:
 	static const unsigned int s_m_PixelSize = 20;
 
 	std::array<std::array<Node*, s_m_ColumnSize>, s_m_RowSize> m_Nodes;
+	
+	std::vector<sf::Vector2u> m_BasesFound;
 public:
 	Graph();
 	~Graph();
@@ -34,4 +36,7 @@ public:
 
 	NodeState getNodeState(const sf::Vector2u &p_GridPosition) const;
 	void setNodeState(const sf::Vector2u &p_GridPosition, const NodeState &p_NodeState);
+
+	std::vector<sf::Vector2u> &getBasesFound();
+	bool accountedForBase(const sf::Vector2f &p_Position);
 };

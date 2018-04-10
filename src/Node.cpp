@@ -10,6 +10,7 @@ Node::Node(int p_ID, const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_
 	m_Shape.setSize(sf::Vector2f((float)m_Size.x, (float)m_Size.y));
 	m_Shape.setOutlineThickness(outLineThinkness);
 	m_Shape.setOutlineColor(sf::Color::Black);
+	m_IsPath = false;
 	setNodeState(m_State);		// Its state is set, but not the node colour, so set it here.
 }
 

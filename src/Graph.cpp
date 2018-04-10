@@ -20,6 +20,9 @@ Graph::Graph() {
 			m_Nodes[row][column] = node;
 		}
 	}
+
+	// Expect a max of 10 bases, on the map.
+	m_BasesFound.reserve(20);
 }
 
 Graph::~Graph() {
@@ -44,6 +47,9 @@ void Graph::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) con
 }
 
 bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path) {	
+	// Reset the path, readying it for the new one.
+	p_Path.clear();
+
 	// Set the start and goal Node states, so they can be seen on debug mode.
 	p_StartNode.setNodeState(NodeState::START);
 	p_GoalNode.setNodeState(NodeState::GOAL);
@@ -83,7 +89,7 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 			float newGCost = currentNode.getGValue() + neighbourNode->getNeighbourValue();											
 
 			// If the neighbour is on the closed list, get the next neighbour.
-			if (neighbourNode->getNodeState() == NodeState::CLOSED)
+			if (neighbourNode->getNodeState() == NodeState::CLOSED || !neighbourNode->getIsPath())
 				continue;
 
 			// Now we know the node isn't on the closed list,
@@ -162,6 +168,8 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 std::list<Node*> Graph::constructPath(Node &p_GoalNode, std::map<int, Node> p_CameFrom) {
 	std::list<Node*> path;
 	
+	/* CHECK IF THERES TWO NODES OF THE SAME IN p_CameFrom, IF THERE IS REMOVE EVERY NODE BETWEEN THE TWO AND THEN ONE OF THE COPIES. */
+
 	path.push_back(&p_GoalNode); // Add the goal node, to path.
 	for (auto &i : p_CameFrom) {	 /* Go through the p_CameFrom map, adding each node to the path, and getting its parent, adding that to the path, etc. */
 		Node* pathNode = &getNode(i.first);
@@ -187,11 +195,22 @@ float Graph::calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode) 
 }
 
 void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSearchDistance) {
-	// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
-	for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += p_NeighbourSearchDistance) {
-		for (int yPosition = p_BasePosition.y; yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += p_NeighbourSearchDistance) {
-			getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
+	bool alreadyHasBaseNode(false);
+	for (auto &i : m_BasesFound) {
+		if (i.x == p_BasePosition.x && i.y == p_BasePosition.y) {
+			alreadyHasBaseNode = true;
+			return;
 		}
+	}
+
+	if (!alreadyHasBaseNode) {
+		// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
+		for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += p_NeighbourSearchDistance) {
+			for (int yPosition = p_BasePosition.y - (p_NeighbourSearchDistance * 2); yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += p_NeighbourSearchDistance) {
+				getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
+			}
+		}
+		m_BasesFound.push_back(p_BasePosition);
 	}
 }
 
@@ -237,4 +256,18 @@ NodeState Graph::getNodeState(const sf::Vector2u &p_GridPosition) const {
 
 void Graph::setNodeState(const sf::Vector2u &p_GridPosition, const NodeState &p_NodeState) {
 	m_Nodes[p_GridPosition.y][p_GridPosition.x]->setNodeState(p_NodeState);
+}
+
+std::vector<sf::Vector2u> &Graph::getBasesFound() {
+	return m_BasesFound;
+}
+
+bool Graph::accountedForBase(const sf::Vector2f &p_Position) {
+	for (auto &i : getBasesFound()) {
+		if (i.x == p_Position.x && i.y == p_Position.y) {
+			return true;
+		}
+	}
+
+	return false;
 }
