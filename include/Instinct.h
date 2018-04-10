@@ -73,6 +73,7 @@ public:
 	bool QuadSearch();
 
 	void takeAim();
+	void prepareFire(Position p_Position, bool isEnemy);
 	float getDistance(Position p_Position);
 
 	Graph *getGraph() const;

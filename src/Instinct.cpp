@@ -22,7 +22,8 @@ void Instinct::reset() {
 
 void Instinct::move() { //called every frame
 	//Scan();
-	drive();
+	//drive();
+	QuadSearch();
 }
 
 void Instinct::collided() {
@@ -31,6 +32,7 @@ void Instinct::collided() {
 
 void Instinct::markTarget(Position p_Position) {
 	Memorise(p_Position, false);
+	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
 	/*m_EnemyBasePosition = p_Position;
 
 	m_bEnemySeen = true;
@@ -53,6 +55,10 @@ void Instinct::markEnemy(Position p_Position) {
 
 void Instinct::markBase(Position p_Position) {
 	Memorise(p_Position, true);
+	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
+	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
+	//
+	//}
 }
 
 void Instinct::markShell(Position p_Position) {
@@ -216,10 +222,14 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig cur
 	static bool isTravelling = false;
 	if (isTravelling == false)
 	{
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
 		if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
 		{
 			currentQuad = 0;
+		}
+		else
+		{
+			currentQuad++;
 		}
 		isTravelling = true;
 	}
@@ -294,6 +304,11 @@ void Instinct::takeAim()
 			stopTurret();
 		}
 	}
+
+}
+
+void Instinct::prepareFire(Position p_Position, bool isEnemy)
+{
 
 }
 
