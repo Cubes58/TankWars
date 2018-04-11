@@ -22,6 +22,7 @@ private:
 	sf::Vector2u m_PixelPosition;		// Its position on the screen.
 	sf::Vector2u m_GraphArrayPosition;	// Its position in the (Graph) array.
 	sf::Vector2u m_Size;
+	//Node *m_ParentNode = nullptr;
 
 	NodeState m_State;
 
@@ -38,6 +39,8 @@ public:
 	Node() = default;	/* Default constructor. */
 	Node(int p_ID, const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
+
+	Node *m_ParentNode = nullptr;
 
 	// Draw method.
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;

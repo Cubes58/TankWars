@@ -1,5 +1,7 @@
 #include "Graph.h"
 
+#include <iostream>
+
 Graph::Graph() {
 	int rowPositionOffset = (s_m_PixelSize / 2);		// Distance between the nodes, in the row.
 	int columnPositionOffset = (s_m_PixelSize / 2);		// Distance between the nodes, in the column.
@@ -49,6 +51,7 @@ void Graph::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) con
 bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path) {	
 	// Reset the path, readying it for the new one.
 	p_Path.clear();
+	clearNodes();
 
 	// Set the start and goal Node states, so they can be seen on debug mode.
 	p_StartNode.setNodeState(NodeState::START);
@@ -57,7 +60,7 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
 
-	std::map<int, Node> cameFrom;	// Tracking parent node[s].
+	//std::map<int, Node> cameFrom;	// Tracking parent node[s].
 
 	// Set the starting node and its values (G, H, and F).
 	Node currentNode = p_StartNode;
@@ -77,13 +80,17 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 		closedList.push_back(currentNode);	// Add it to the closed list.
 		openList.pop_front();				// Remove it from the open list.
 
+		Node *bestNeighbourNode = &currentNode;
 		if (currentNode == p_GoalNode) {
-			p_Path = constructPath(p_GoalNode, cameFrom);
+			//p_Path = constructPath(p_GoalNode, cameFrom);
+			//p_GoalNode.m_ParentNode = &getNode(currentNode.getID());
+			p_GoalNode.m_ParentNode = getNode(bestNeighbourNode->getID()).m_ParentNode;
+			p_Path = constructPath(p_GoalNode);
 			return true;		// Path found.
 		}		
 
 		// Keep track of the best neighbour, so we can compare the others, and update it, if there's one better.
-		Node *bestNeighbourNode = &currentNode;	
+		//Node *bestNeighbourNode = &currentNode;	
 		for (auto &neighbourNode : getNeighbours(currentNode)) {
 			// The new G cost, of the neighbourNode is the current node G cost, plus the neighbour move cost (1, or 1.414).  
 			float newGCost = currentNode.getGValue() + neighbourNode->getNeighbourValue();											
@@ -108,16 +115,23 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 
 			if (!inOpenList)
 				openList.push_back(*neighbourNode);		// If the neighbour isn't on the closed list, add it on.
+			else {
+				bestNeighbourNode = neighbourNode;
+				//getNode(bestNeighbourNode->getID()) = *getNode(currentNode.getID()).m_ParentNode;
+			}
 
 			// Set the best cost to goal node, as the one we're on.
 			// Node's that have a better score need to be kept track of.
 			float best = currentNode.getFValue();
-			if (best < neighbourNode->getFValue() && bestNeighbourNode->getFValue() < neighbourNode->getFValue()) {
+			if (best < neighbourNode->getFValue()) {// && bestNeighbourNode->getFValue() < neighbourNode->getFValue()) {
 				continue;
-			}			
+			}	
 		}
 		// Add the best neighbour to the cameFrom map, as we're taking that route, to the goal. (Neighbour with the lowest F value.)
-		cameFrom[bestNeighbourNode->getID()] = currentNode;
+		//cameFrom[bestNeighbourNode->getID()] = currentNode;
+		//getNode(currentNode.getID()).m_ParentNode = &getNode(bestNeighbourNode->getID());
+		getNode(bestNeighbourNode->getID()).m_ParentNode = &getNode(currentNode.getID());
+
 
 		// DEBUG PURPOSES: To see the closed/open list, in debug mode.
 		for (auto &i : closedList) {
@@ -156,7 +170,18 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 					else
 						neighbourNode->setNeighbourValue(normalCost);
 					neighbours.push_back(neighbourNode);			// Add the neighbour node to the vector of neighbours.
+
+
+					Node *temp = &getNode(neighbourNode->getID());
+
+					if (temp->m_ParentNode == nullptr)
+						temp->m_ParentNode = &getNode(p_Node.getID());
+					//getNode(neighbourNode->getID()).m_ParentNode = &getNode(p_Node.getID());
 				}
+				
+				//Node *temp = &getNode(neighbourNode->getID());
+
+				//getNode(neighbourNode->getID()).m_ParentNode = &getNode(p_Node.getID());
 			}
 		}
 	}
@@ -165,21 +190,24 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 	return neighbours;
 }
 
-std::list<Node*> Graph::constructPath(Node &p_GoalNode, std::map<int, Node> p_CameFrom) {
+std::list<Node*> Graph::constructPath(Node &p_GoalNode) {
 	std::list<Node*> path;
-	
-	/* CHECK IF THERES TWO NODES OF THE SAME IN p_CameFrom, IF THERE IS REMOVE EVERY NODE BETWEEN THE TWO AND THEN ONE OF THE COPIES. */
 
-	path.push_back(&p_GoalNode); // Add the goal node, to path.
-	for (auto &i : p_CameFrom) {	 /* Go through the p_CameFrom map, adding each node to the path, and getting its parent, adding that to the path, etc. */
-		Node* pathNode = &getNode(i.first);
-		if (!(pathNode->getNodeState() == NodeState::START || pathNode->getNodeState() == NodeState::GOAL))
-			pathNode->setNodeState(NodeState::PATH);
+	path.push_back(&p_GoalNode);
+	Node *node = p_GoalNode.m_ParentNode;
+	while (node != nullptr && node->m_ParentNode->getGraphArrayPosition() != node->getGraphArrayPosition()) {
+		node->setNodeState(NodeState::PATH);
+		path.push_back(node);
 
-		path.push_back(pathNode);
-	}	
-	// Set the node at the back to the start node, as it is. For debugging purposes!
+		node = node->m_ParentNode;
+
+		if (node->m_ParentNode->getGraphArrayPosition() == node->getGraphArrayPosition()) {
+			path.push_back(node);
+		}
+	}
+
 	path.back()->setNodeState(NodeState::START);
+	path.front()->setNodeState(NodeState::GOAL);
 
 	return path;	// Return the path, to be used.
 }
@@ -190,7 +218,7 @@ float Graph::calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode) 
 
 	// Also want this value to be set for the node, so we can use it within the A star algorithm (getHValue()).
 	// std::abs ensure we're always using the absolute value.
-	p_CurrentNode.setHValue((float)(std::abs(xDistance) + std::abs(yDistance)));
+	p_CurrentNode.setHValue((float)(std::abs(xDistance) + std::abs(yDistance)) * 1.4);
 	return p_CurrentNode.getHValue();
 }
 

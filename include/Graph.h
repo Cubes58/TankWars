@@ -24,7 +24,7 @@ public:
 
 	bool aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<Node*> &p_Path);
 	std::vector<Node*> getNeighbours(Node &p_Node);
-	std::list<Node*> constructPath(Node &p_GoalNode, std::map<int, Node> p_CameFrom);
+	std::list<Node*> constructPath(Node &p_GoalNode);
 	float calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode);
 	
 	void setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSearchDistance = 20);
