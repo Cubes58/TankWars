@@ -51,11 +51,14 @@ private:
 	int m_iangleInDegrees = 0;
 	int m_iturretAngle = 0;
 
-	float rotPrecision = 5;
+	float rotPrecision = 5.0f;
 	float m_fgetEnemyDistance = 0.0f;
 
 	std::vector<Position> m_AllyBases;
 	std::vector<Position> m_EnemyBases;
+
+	bool m_bUncertain = false;
+	int m_iBaseCheckDiameter = 5;
 
 	Position m_EnemyLastPosition;
 	Position m_EnemyBasePosition;

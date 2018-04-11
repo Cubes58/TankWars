@@ -33,9 +33,9 @@ void Instinct::move() { //called every frame
 		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
 		falseMe = false;
 	}*/
-	update();
-	drive();
-	//QuadSearch();
+	//update();
+	//drive();
+	QuadSearch();
 }
 
 void Instinct::update()
@@ -79,10 +79,10 @@ void Instinct::collided() {
 void Instinct::markTarget(Position p_Position) 
 {
 	Memorise(p_Position, false);
-	if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
-	}
-	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
+	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
+	//	m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
+	//}
+	//m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
 }
 
 void Instinct::markEnemy(Position p_Position) {
@@ -91,11 +91,11 @@ void Instinct::markEnemy(Position p_Position) {
 
 void Instinct::markBase(Position p_Position) {
 	Memorise(p_Position, true);
-	if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 240)), m_Path);
-	}
-	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
-	m_bFriendlySeen = true;
+	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
+		//m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 240)), m_Path);
+	//}
+	//m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
+	//m_bFriendlySeen = true;
 }
 
 void Instinct::markShell(Position p_Position) {
@@ -212,7 +212,7 @@ bool Instinct::Scan(bool canScan)
 			scanStarted = false;
 			return true;
 		}
-		return false;
+return false;
 	}
 	return true;
 }
@@ -220,6 +220,10 @@ bool Instinct::Scan(bool canScan)
 void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
 {
 	bool alreadyMemorised = false;
+	if (!m_Graph->accountedForBase(sf::Vector2u(p_BasePos.getX(), p_BasePos.getY()))) {
+		m_bUncertain = true;
+	}
+	m_Graph->setBaseNodes(sf::Vector2u(p_BasePos.getX(), p_BasePos.getY()));
 	if (p_IsAlly)
 	{
 		if (m_AllyBases.size() != 0)
@@ -235,7 +239,7 @@ void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
 			}
 		}
 		else
-		{ 
+		{
 			m_AllyBases.push_back(p_BasePos);
 		}
 	}
@@ -267,7 +271,7 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 		Position(195, 142), //upper left
 		Position(585, 142), //upper right
 		Position(585, 427), //lower right
-		Position(195, 427)}; //lower left
+		Position(195, 427) }; //lower left
 	static int nearestQuad = 0;
 
 	if (nearestQuadCheck == false)
@@ -290,9 +294,44 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 
 	if (isTravelling == false)
 	{
-		std::cout << "!" << std::endl;
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), 
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())),
 			m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		isTravelling = true;
+	}
+	if (m_bUncertain) {
+		Node goalNode = m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY()));
+		if (goalNode.getNodeState() == NodeState::BASE)
+		{
+			bool first = true;
+			Node* node = nullptr;
+			Node* bestNode = nullptr;
+			for (int i = -m_iBaseCheckDiameter; i <= m_iBaseCheckDiameter; i++)
+			{
+				for (int j = -m_iBaseCheckDiameter; j <= m_iBaseCheckDiameter; j++)
+				{
+					node = &m_Graph->getNode(goalNode.getGraphArrayPosition() + sf::Vector2u(i, j));
+					if (first) {
+						bestNode = node;
+						first = false;
+					} else {
+						if (getDistance(Position(node->getPixelPosition().x, node->getPixelPosition().y)) < getDistance(Position(bestNode->getPixelPosition().x, bestNode->getPixelPosition().y)) && node->getNodeState() != NodeState::BASE) {
+							bestNode = node;
+						}
+					}
+				}
+			}
+			m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())),
+				*bestNode, m_Path);
+		}
+		else
+		{
+			m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())),
+				m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		}
+		m_bUncertain = false;
+	}
+	if (drive()) {
+		quadCounter++;
 		if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
 		{
 			currentQuad = 0;
@@ -301,10 +340,6 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 		{
 			currentQuad++;
 		}
-		isTravelling = true;
-	}
-	if (drive()) {
-		quadCounter++;
 		isTravelling = false;
 	}
 	if (quadCounter >= 3) // after reaching the start quad and anything afterwards you have finished
