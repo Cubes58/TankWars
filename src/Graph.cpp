@@ -53,6 +53,10 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 	p_Path.clear();
 	clearNodes();
 
+	if (!p_GoalNode.getIsPath()) {
+		return false;
+	}
+
 	// Set the start and goal Node states, so they can be seen on debug mode.
 	//p_StartNode.setNodeState(NodeState::START);
 	//p_GoalNode.setNodeState(NodeState::GOAL);
@@ -234,7 +238,7 @@ void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSear
 	if (!alreadyHasBaseNode) {
 		// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
 		for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += p_NeighbourSearchDistance) {
-			for (int yPosition = p_BasePosition.y - (p_NeighbourSearchDistance * 2); yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += p_NeighbourSearchDistance) {
+			for (int yPosition = p_BasePosition.y - p_NeighbourSearchDistance; yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += p_NeighbourSearchDistance) {
 				getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
 			}
 		}
