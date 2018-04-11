@@ -68,17 +68,17 @@ public:
 
 	void reset();
 	void move();
-	void collided();
 	void update();
 	void markTarget(Position p_Position);
 	void markEnemy(Position p_Position);
 	void markBase(Position p_Position);
 	void markShell(Position p_Position);
+	void collided();
 	bool isFiring();
 	void score(int p_ThisScore, int p_EnemyScore);
 
 	bool drive();
-	bool Scan(bool canScan);
+	bool Scan();
 	void Memorise(Position p_BasePos, bool p_IsAlly);
 	bool QuadSearch();
 

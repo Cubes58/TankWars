@@ -9,12 +9,6 @@ Instinct::Instinct() {
 	m_eMainState = MainStates::Attacking;
 	m_eAttackingState = AttackingStates::Locating;
 	m_eDefendingState = DefendingStates::Neutral;
-	//Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 20));
-	//tempNode->setNodeState(NodeState::GOAL);
-	//m_Path.push_back(tempNode);
-	//m_eMainState = MainStates::Attacking;
-	//m_eAttackingState = AttackingStates::Locating;
-	//m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 400)), m_Path);
 }
 
 Instinct::~Instinct() {
@@ -22,25 +16,18 @@ Instinct::~Instinct() {
 }
 
 void Instinct::reset() {
-	//m_Path.clear();	// Clear the old path, ready for a new one.
+	
 }
 
 void Instinct::move() { //called every frame
-	//Debugging
-	//takeAim();
-	/*static bool falseMe(true);
-	if (falseMe) {
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
-		falseMe = false;
-	}*/
 	//update();
 	//drive();
-	QuadSearch();
+	//QuadSearch();
+	Scan();
 }
 
 void Instinct::update()
 {
-	
 	if (m_eMainState == MainStates::Attacking)
 	{
 		if (QuadSearch() && m_eAttackingState == AttackingStates::Locating)
@@ -72,10 +59,6 @@ void Instinct::update()
 	}
 }
 
-void Instinct::collided() {
-
-}
-
 void Instinct::markTarget(Position p_Position) 
 {
 	Memorise(p_Position, false);
@@ -100,6 +83,10 @@ void Instinct::markBase(Position p_Position) {
 
 void Instinct::markShell(Position p_Position) {
 
+}
+
+void Instinct::collided()
+{
 }
 
 bool Instinct::isFiring() {
@@ -183,36 +170,34 @@ bool Instinct::drive()
 			{
 				m_TargetNode = m_Path.back();
 			}
-			else
-			{
-				stop();
-				return true;
-			}
+			//else
+			//{
+			//	stop();
+			//	return true;
+			//}
 		}
+	}
+	else
+	{
+		stop();
+		return true;
 	}
 	return false;
 }
 
-bool Instinct::Scan(bool canScan)
+bool Instinct::Scan()
 {
-	if (!canScan)
+	static bool scanStarted(false);
+	static float startTurretAngle(turretTh);
+	if (!scanStarted)
 	{
-
-		static bool scanStarted(false);
-		static float startTurretAngle(turretTh);
-		if (scanStarted == false)
-		{
-			scanStarted = true;
-			startTurretAngle = turretTh;
-			turretGoRight();
-		}
-
-		if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle - 1)
-		{
-			scanStarted = false;
-			return true;
-		}
-return false;
+		scanStarted = true;
+		startTurretAngle = turretTh;
+		turretGoRight();
+	} else if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle - 1) {
+		scanStarted = false;
+		std::cout << "scan finished" << std::endl;
+		return true;
 	}
 	return true;
 }
@@ -294,10 +279,34 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 
 	if (isTravelling == false)
 	{
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())),
-			m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		Node goalNode = m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY()));
+		if (m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())),
+			goalNode, m_Path)) {
+			bool first = true;
+			Node* node = nullptr;
+			Node* bestNode = nullptr;
+			for (int i = -m_iBaseCheckDiameter; i <= m_iBaseCheckDiameter; i++)
+			{
+				for (int j = -m_iBaseCheckDiameter; j <= m_iBaseCheckDiameter; j++)
+				{
+					node = &m_Graph->getNode(goalNode.getGraphArrayPosition() + sf::Vector2u(i, j));
+					if (first) {
+						bestNode = node;
+						first = false;
+					}
+					else {
+						if (getDistance(Position(node->getPixelPosition().x, node->getPixelPosition().y)) < getDistance(Position(bestNode->getPixelPosition().x, bestNode->getPixelPosition().y)) && node->getNodeState() != NodeState::BASE) {
+							bestNode = node;
+						}
+					}
+				}
+			}
+			m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())),
+				*bestNode, m_Path);
+		 }
 		isTravelling = true;
 	}
+
 	if (m_bUncertain) {
 		Node goalNode = m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY()));
 		if (goalNode.getNodeState() == NodeState::BASE)
@@ -330,6 +339,7 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 		}
 		m_bUncertain = false;
 	}
+
 	if (drive()) {
 		quadCounter++;
 		if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
@@ -436,7 +446,6 @@ float Instinct::getDistance(Position p_Position)
 
 	return temp_Distance;
 }
-
 
 
 Graph *Instinct::getGraph() const {
