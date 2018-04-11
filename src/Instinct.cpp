@@ -27,7 +27,13 @@ void Instinct::reset() {
 void Instinct::move() { //called every frame
 	//Debugging
 	//takeAim();
-	//drive();
+	static bool falseMe(true);
+	if (falseMe) {
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
+		falseMe = false;
+	}
+	
+	drive();
 	//QuadSearch();
 }
 
@@ -38,19 +44,25 @@ void Instinct::collided() {
 void Instinct::markTarget(Position p_Position) 
 {
 	Memorise(p_Position, false);
+	if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
+	}
 	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
-	takeAim();
+	//takeAim();
 	
 }
 
 void Instinct::markEnemy(Position p_Position) {
 	m_EnemyLastPosition = p_Position;
-	takeAim();
+	//takeAim();
 }
 
 void Instinct::markBase(Position p_Position) {
 	Memorise(p_Position, true);
-	takeAim();
+	//takeAim();
+	if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 240)), m_Path);
+	}
 	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
 	m_bFriendlySeen = true;
 	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
@@ -197,7 +209,7 @@ void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
 	}
 }
 
-bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig currently
+bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting currently
 {
 	static bool nearestQuadCheck = false;
 	static const Position quadrants[4] = {
@@ -228,7 +240,8 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of resetig cur
 	if (isTravelling == false)
 	{
 		std::cout << "!" << std::endl;
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
+		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), 
+			m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
 		if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
 		{
 			currentQuad = 0;

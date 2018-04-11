@@ -248,6 +248,7 @@ void Graph::clearNodes() {
 		for (auto &j : i) {
 			if (!(j->getNodeState() == NodeState::BASE || j->getNodeState() == NodeState::WALL))
 				j->setNodeState(NodeState::NOTHING);
+			j->m_ParentNode = nullptr;
 		}
 	}
 }
