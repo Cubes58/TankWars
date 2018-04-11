@@ -53,13 +53,11 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 	p_Path.clear();
 	clearNodes();
 
+	// The node, given as a goal node is either a base or a wall node, so we cannot move to it.
 	if (!p_GoalNode.getIsPath()) {
-		return false;
+		// Sets the goal node, to the closest node to the goal, that is a path (i.e. not a base or wall).
+		calculateClosestNodeToGoal(p_GoalNode);
 	}
-
-	// Set the start and goal Node states, so they can be seen on debug mode.
-	//p_StartNode.setNodeState(NodeState::START);
-	//p_GoalNode.setNodeState(NodeState::GOAL);
 	
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
@@ -121,7 +119,6 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 				openList.push_back(*neighbourNode);		// If the neighbour isn't on the closed list, add it on.
 			else {
 				bestNeighbourNode = neighbourNode;
-				//getNode(bestNeighbourNode->getID()) = *getNode(currentNode.getID()).m_ParentNode;
 			}
 
 			// Set the best cost to goal node, as the one we're on.
@@ -131,9 +128,7 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 				continue;
 			}	
 		}
-		// Add the best neighbour to the cameFrom map, as we're taking that route, to the goal. (Neighbour with the lowest F value.)
-		//cameFrom[bestNeighbourNode->getID()] = currentNode;
-		//getNode(currentNode.getID()).m_ParentNode = &getNode(bestNeighbourNode->getID());
+		// Set the best neighbour's parent to the current node.
 		getNode(bestNeighbourNode->getID()).m_ParentNode = &getNode(currentNode.getID());
 
 
@@ -175,17 +170,10 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 						neighbourNode->setNeighbourValue(normalCost);
 					neighbours.push_back(neighbourNode);			// Add the neighbour node to the vector of neighbours.
 
-
 					Node *temp = &getNode(neighbourNode->getID());
-
 					if (temp->m_ParentNode == nullptr)
 						temp->m_ParentNode = &getNode(p_Node.getID());
-					//getNode(neighbourNode->getID()).m_ParentNode = &getNode(p_Node.getID());
 				}
-				
-				//Node *temp = &getNode(neighbourNode->getID());
-
-				//getNode(neighbourNode->getID()).m_ParentNode = &getNode(p_Node.getID());
 			}
 		}
 	}
@@ -224,6 +212,68 @@ float Graph::calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode) 
 	// std::abs ensure we're always using the absolute value.
 	p_CurrentNode.setHValue((float)(std::abs(xDistance) + std::abs(yDistance)) * 1.4);
 	return p_CurrentNode.getHValue();
+}
+
+void Graph::calculateClosestNodeToGoal(Node &p_GoalNode) {
+	Node tempGoal = p_GoalNode;
+
+	/* SIDE NODE: up and down are inverted - Nodes are created from the top of the screen, so +y = -y and -y = +y */
+	int numberOfLeftBases(0);
+	int numberOfRightBases(0);
+	int numberOfUpBases(0);
+	int numberOfDownBases(0);
+
+	// Check how many base nodes are in each vertical/horizontal direction.
+	Node *currentNode = &tempGoal;
+	// Left counter.
+	while (!currentNode->getIsPath()) {
+		numberOfLeftBases++;
+		currentNode = &getNode(sf::Vector2u(currentNode->getGraphArrayPosition().x - 1, currentNode->getGraphArrayPosition().y));
+	}
+
+	// Reset the tempGoalNode.
+	tempGoal = p_GoalNode;
+	currentNode = &tempGoal;
+	// Right counter.
+	while (!currentNode->getIsPath()) {
+		numberOfRightBases++;
+		currentNode = &getNode(sf::Vector2u(currentNode->getGraphArrayPosition().x + 1, currentNode->getGraphArrayPosition().y));
+	}
+
+	// Reset the tempGoalNode.
+	tempGoal = p_GoalNode;
+	currentNode = &tempGoal;
+	// Up counter.
+	while (!currentNode->getIsPath()) {
+		numberOfUpBases++;
+		currentNode = &getNode(sf::Vector2u(currentNode->getGraphArrayPosition().x, currentNode->getGraphArrayPosition().y + 1));
+	}
+
+	// Reset the tempGoalNode.
+	tempGoal = p_GoalNode;
+	currentNode = &tempGoal;
+	// Down counter.
+	while (!currentNode->getIsPath()) {
+		numberOfDownBases++;
+		currentNode = &getNode(sf::Vector2u(currentNode->getGraphArrayPosition().x, currentNode->getGraphArrayPosition().y - 1));
+	}
+
+	if (numberOfLeftBases < numberOfRightBases && numberOfLeftBases < numberOfUpBases && numberOfLeftBases < numberOfDownBases) {
+		// Go Left of the goal node.
+		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x + numberOfLeftBases, p_GoalNode.getGraphArrayPosition().y));
+	}
+	else if (numberOfRightBases < numberOfLeftBases && numberOfRightBases < numberOfUpBases && numberOfRightBases < numberOfDownBases) {
+		// Go right of the goal node.
+		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x + numberOfRightBases, p_GoalNode.getGraphArrayPosition().y));
+	}
+	else if (numberOfUpBases < numberOfLeftBases && numberOfUpBases < numberOfRightBases && numberOfUpBases < numberOfDownBases) {
+		// Go up of the goal node.
+		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x, p_GoalNode.getGraphArrayPosition().y + numberOfUpBases));
+	}
+	else {
+		// Go down of the goal node.
+		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x, p_GoalNode.getGraphArrayPosition().y - numberOfDownBases));
+	}
 }
 
 void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSearchDistance) {
