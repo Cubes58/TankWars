@@ -1,13 +1,14 @@
 #include "Instinct.h"
 #include <iostream>
+#include <functional>
+#include <algorithm>
 
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
 	//Debugging Enums
 	m_eMainState = MainStates::Attacking;
-	m_eAttackingState = AttackingStates::Attacking;
-	
-
+	m_eAttackingState = AttackingStates::Locating;
+	m_eDefendingState = DefendingStates::Neutral;
 	//Node *tempNode = &m_Graph->getNode(sf::Vector2u(1, 20));
 	//tempNode->setNodeState(NodeState::GOAL);
 	//m_Path.push_back(tempNode);
@@ -27,14 +28,48 @@ void Instinct::reset() {
 void Instinct::move() { //called every frame
 	//Debugging
 	//takeAim();
-	static bool falseMe(true);
+	/*static bool falseMe(true);
 	if (falseMe) {
 		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
 		falseMe = false;
-	}
-	
+	}*/
+	update();
 	drive();
 	//QuadSearch();
+}
+
+void Instinct::update()
+{
+	
+	if (m_eMainState == MainStates::Attacking)
+	{
+		if (QuadSearch() && m_eAttackingState == AttackingStates::Locating)
+		{
+			gotoCenter = false;
+			m_eAttackingState = AttackingStates::Attacking;
+		}
+		if (m_eAttackingState == AttackingStates::Attacking)
+		{
+			if (!gotoCenter)
+			{
+				m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
+				gotoCenter = true;
+			}
+			else
+			{
+				fireBases();
+			}
+
+		}
+	}
+	if (m_eMainState == MainStates::Defending)
+	{
+		gotoCenter = false;
+		if (m_bEnemySeen)
+		{
+			m_eDefendingState = DefendingStates::Engaging;
+		}
+	}
 }
 
 void Instinct::collided() {
@@ -48,26 +83,19 @@ void Instinct::markTarget(Position p_Position)
 		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
 	}
 	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
-	//takeAim();
-	
 }
 
 void Instinct::markEnemy(Position p_Position) {
 	m_EnemyLastPosition = p_Position;
-	//takeAim();
 }
 
 void Instinct::markBase(Position p_Position) {
 	Memorise(p_Position, true);
-	//takeAim();
 	if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
 		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 240)), m_Path);
 	}
 	m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
 	m_bFriendlySeen = true;
-	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
-	//
-	//}
 }
 
 void Instinct::markShell(Position p_Position) {
@@ -78,8 +106,31 @@ bool Instinct::isFiring() {
 	return m_bFiring;
 }
 
-void Instinct::score(int p_ThisScore, int p_EnemyScore) {
-
+void Instinct::score(int p_ThisScore, int p_EnemyScore) 
+{
+	if (p_EnemyScore >= p_ThisScore + 30)
+	{
+		m_eMainState = MainStates::Defending;
+	}
+	else
+	{
+		m_eMainState = MainStates::Attacking;
+	}
+	if (p_ThisScore - m_iOurScore == 10)
+	{
+		m_baseHit = true;
+	}
+	if (p_ThisScore - m_iOurScore == 25)
+	{
+		m_enemyHit = true;
+	}
+	else
+	{
+		m_enemyHit = false;
+		m_baseHit = false;
+	}
+	m_iOurScore = p_ThisScore;
+	m_iEnemyScore = p_EnemyScore;
 }
 
 bool Instinct::drive()
@@ -263,10 +314,10 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 	return false;
 }
 
-void Instinct::takeAim()
+/*void Instinct::takeAim()
 {
-	/*float temp_enemy = getDistance(m_EnemyLastPosition);
-	float temp_enemyBase = getDistance(m_EnemyBasePosition);*/
+	float temp_enemy = getDistance(m_EnemyLastPosition);
+	float temp_enemyBase = getDistance(m_EnemyBasePosition);
 
 		takeAim(m_EnemyLastPosition);
 		if (m_eMainState == MainStates::Defending && m_eDefendingState == DefendingStates::Engaging)
@@ -280,9 +331,9 @@ void Instinct::takeAim()
 			fireBases();
 		}
 
-}
+}*/
 
-bool Instinct::takeAim(Position p_Position)
+void Instinct::takeAim(Position p_Position)
 {
 	m_ixPos = p_Position.getX();
 
@@ -297,17 +348,18 @@ bool Instinct::takeAim(Position p_Position)
 	if (deltaR > 1 && deltaR < 180 || deltaR < -180)
 	{
 		turretGoLeft();
+		m_bTurretAligned = false;
 	}
 	else if (deltaR < -1 && deltaR > -180 || deltaR > 180)
 	{
 		turretGoRight();
+		m_bTurretAligned = false;
 	}
 	else
 	{
 		stopTurret();
 		m_bTurretAligned = true;
 	}
-	return false;
 }
 
 void Instinct::fireEnemy(Position p_Position, bool isEnemy)
@@ -320,15 +372,24 @@ void Instinct::fireBases()
 	//TODO - Pass bases into getDistance and sort based off that distance
 	/*for (int i = 0; i < m_EnemyBases.size(); i++)
 	{
-		
+		getDistance(m_EnemyBases[i]);
 	}*/
 
-	takeAim(m_EnemyBases[0]);
-
-	if (m_bTurretAligned)
+	//std::stable_sort(m_EnemyBases.begin(), m_EnemyBases.end(), std::mem_fun_ref(&Instinct::getDistance));
+	if (m_EnemyBases.size() != 0)
 	{
-		m_bFiring = true;
+		takeAim(m_EnemyBases[0]);
+
+		if (m_bTurretAligned)
+		{
+			m_bFiring = true;
+			if (m_baseHit)
+			{
+				m_EnemyBases.erase(m_EnemyBases.begin());
+			}
+		}
 	}
+
 }
 
 float Instinct::getDistance(Position p_Position)

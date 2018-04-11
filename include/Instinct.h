@@ -4,8 +4,9 @@
 #include "Graph.h"
 
 enum class MainStates : unsigned int {
+	Attacking,
 	Defending,
-	Attacking
+	
 };
 enum class DefendingStates : unsigned int {
 	Locating,
@@ -38,6 +39,9 @@ private:
 	bool m_bBulletSeen = false;
 	bool m_bTurretAligned = false;
 	bool m_bFiring = false;
+	bool gotoCenter = false;
+	bool m_baseHit = false;
+	bool m_enemyHit = false;
 
 	int m_iAmmoCount = 12;
 	int m_iOurScore = 0;
@@ -62,6 +66,7 @@ public:
 	void reset();
 	void move();
 	void collided();
+	void update();
 	void markTarget(Position p_Position);
 	void markEnemy(Position p_Position);
 	void markBase(Position p_Position);
@@ -74,8 +79,8 @@ public:
 	void Memorise(Position p_BasePos, bool p_IsAlly);
 	bool QuadSearch();
 
-	void takeAim();
-	bool takeAim(Position p_Position);
+	//void takeAim();
+	void takeAim(Position p_Position);
 	void fireEnemy(Position p_Position, bool isEnemy);
 	void fireBases();
 	float getDistance(Position p_Position);
