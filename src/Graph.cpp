@@ -54,8 +54,8 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 	clearNodes();
 
 	// Set the start and goal Node states, so they can be seen on debug mode.
-	p_StartNode.setNodeState(NodeState::START);
-	p_GoalNode.setNodeState(NodeState::GOAL);
+	//p_StartNode.setNodeState(NodeState::START);
+	//p_GoalNode.setNodeState(NodeState::GOAL);
 	
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
