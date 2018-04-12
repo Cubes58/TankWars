@@ -289,15 +289,16 @@ void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSear
 
 	if (!alreadyHasBaseNode) {
 		// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
-		int searchDistance = 15;
+		int searchDistance = 15;	// Pixels.
 		if (p_NeighbourSearchDistance < 20)
 			searchDistance = p_NeighbourSearchDistance;
 		else
 			;
 
-		for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + p_NeighbourSearchDistance; xPosition += searchDistance) {
-			for (int yPosition = p_BasePosition.y - p_NeighbourSearchDistance; yPosition < p_BasePosition.y + p_NeighbourSearchDistance; yPosition += searchDistance) {
-				getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
+		for (int xPosition = p_BasePosition.x - (p_NeighbourSearchDistance * 2); xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += searchDistance) {
+			for (int yPosition = p_BasePosition.y - (p_NeighbourSearchDistance * 2); yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += searchDistance) {
+				if ((xPosition < 800  && xPosition > 0) && (yPosition < 600 && yPosition > 0))
+					getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
 			}
 		}
 		m_BasesFound.push_back(p_BasePosition);
