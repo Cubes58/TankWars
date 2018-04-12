@@ -57,7 +57,7 @@ private:
 	std::vector<Position> m_AllyBases;
 	std::vector<Position> m_EnemyBases;
 
-	bool m_bUncertain = false;
+	bool m_calcNewPath = true;
 	int m_iBaseCheckDiameter = 5;
 
 	Position m_EnemyLastPosition;

@@ -95,6 +95,7 @@ bool Instinct::isFiring() {
 
 void Instinct::score(int p_ThisScore, int p_EnemyScore) 
 {
+	std::cout << p_ThisScore << " " << p_EnemyScore << std::endl;
 	if (p_EnemyScore >= p_ThisScore + 30)
 	{
 		m_eMainState = MainStates::Defending;
@@ -196,7 +197,7 @@ void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
 {
 	bool alreadyMemorised = false;
 	if (!m_Graph->accountedForBase(sf::Vector2u(p_BasePos.getX(), p_BasePos.getY()))) {
-		m_bUncertain = true;
+		m_calcNewPath = true;
 		m_Graph->setBaseNodes(sf::Vector2u(p_BasePos.getX(), p_BasePos.getY()));
 	}
 	if (p_IsAlly)
@@ -249,8 +250,7 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 		Position(195, 427) }; //lower left
 	static int nearestQuad = 0;
 	static int quadCounter = 0;
-	static int currentQuad = nearestQuad;
-	static bool isTravelling = false;
+	static int currentQuad = 0;
 
 	if (nearestQuadCheck == false)
 	{
@@ -264,31 +264,28 @@ bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting cu
 				nearestQuad = i;
 			}
 		}
+		currentQuad = nearestQuad;
 	}
-
-	if (isTravelling == false)
+	if (m_calcNewPath)
 	{
 		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
-		isTravelling = true;
+		m_calcNewPath = false;
 	}
 	else
 	{
-		if (m_bUncertain) {
-			m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
-			m_bUncertain = false;
-		}
 		if (drive()) {
 			quadCounter++;
 			if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
 				currentQuad = 0;
 			else
 				currentQuad++;
-			isTravelling = false;
+			m_calcNewPath = true;
 		}
 	}
 	if (quadCounter == 3) // after reaching the start quad and anything afterwards you have finished
 	{
 		quadCounter = 0;
+		nearestQuadCheck = false;
 		return true;
 	}
 	return false;
