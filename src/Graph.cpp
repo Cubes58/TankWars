@@ -198,7 +198,9 @@ std::list<Node*> Graph::constructPath(Node &p_GoalNode) {
 		}
 	}
 
-	path.back()->setNodeState(NodeState::START);
+	if (path.back()->getIsPath())
+		path.back()->setNodeState(NodeState::START);
+
 	path.front()->setNodeState(NodeState::GOAL);
 
 	return path;	// Return the path, to be used.
@@ -287,8 +289,14 @@ void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSear
 
 	if (!alreadyHasBaseNode) {
 		// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
-		for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += p_NeighbourSearchDistance) {
-			for (int yPosition = p_BasePosition.y - p_NeighbourSearchDistance; yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += p_NeighbourSearchDistance) {
+		int searchDistance = 15;
+		if (p_NeighbourSearchDistance < 20)
+			searchDistance = p_NeighbourSearchDistance;
+		else
+			;
+
+		for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + p_NeighbourSearchDistance; xPosition += searchDistance) {
+			for (int yPosition = p_BasePosition.y - p_NeighbourSearchDistance; yPosition < p_BasePosition.y + p_NeighbourSearchDistance; yPosition += searchDistance) {
 				getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
 			}
 		}
