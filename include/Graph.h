@@ -27,12 +27,12 @@ public:
 	std::list<Node*> constructPath(Node &p_GoalNode);
 	float calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode);
 	
-	void calculateClosestNodeToGoal(Node &p_GoalNode);
+	void calculateClosestPathNode(Node &p_GoalNode);
 	void setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSearchDistance = 40);
 	void clearNodes();
 
 	Node &getPixelNode(const sf::Vector2u &p_NodePixelPosition) const;
-	Node &getNode(const sf::Vector2u &p_NodeGraphPosition) const;
+	Node &getNode(sf::Vector2u &p_NodeGraphPosition);
 	Node &getNode(int p_ID) const;
 
 	NodeState getNodeState(const sf::Vector2u &p_GridPosition) const;

@@ -54,9 +54,12 @@ bool Graph::aStarSearchAlgorithm(Node &p_StartNode, Node &p_GoalNode, std::list<
 	clearNodes();
 
 	// The node, given as a goal node is either a base or a wall node, so we cannot move to it.
-	if (!p_GoalNode.getIsPath()) {
+	if (p_GoalNode.getNodeState() == NodeState::BASE) {
 		// Sets the goal node, to the closest node to the goal, that is a path (i.e. not a base or wall).
-		calculateClosestNodeToGoal(p_GoalNode);
+		calculateClosestPathNode(p_GoalNode);
+	}
+	if (p_StartNode.getNodeState() == NodeState::BASE) {
+		calculateClosestPathNode(p_GoalNode);
 	}
 	
 	std::list<Node> openList;		// List of nodes that haven't been explored.
@@ -216,8 +219,8 @@ float Graph::calculateManhattanHeuristic(Node &p_CurrentNode, Node &p_GoalNode) 
 	return p_CurrentNode.getHValue();
 }
 
-void Graph::calculateClosestNodeToGoal(Node &p_GoalNode) {
-	Node tempGoal = p_GoalNode;
+void Graph::calculateClosestPathNode(Node &p_Node) {
+	Node tempGoal = p_Node;
 
 	/* SIDE NODE: up and down are inverted - Nodes are created from the top of the screen, so +y = -y and -y = +y */
 	int numberOfLeftBases(0);
@@ -234,7 +237,7 @@ void Graph::calculateClosestNodeToGoal(Node &p_GoalNode) {
 	}
 
 	// Reset the tempGoalNode.
-	tempGoal = p_GoalNode;
+	tempGoal = p_Node;
 	currentNode = &tempGoal;
 	// Right counter.
 	while (!currentNode->getIsPath()) {
@@ -243,7 +246,7 @@ void Graph::calculateClosestNodeToGoal(Node &p_GoalNode) {
 	}
 
 	// Reset the tempGoalNode.
-	tempGoal = p_GoalNode;
+	tempGoal = p_Node;
 	currentNode = &tempGoal;
 	// Up counter.
 	while (!currentNode->getIsPath()) {
@@ -252,7 +255,7 @@ void Graph::calculateClosestNodeToGoal(Node &p_GoalNode) {
 	}
 
 	// Reset the tempGoalNode.
-	tempGoal = p_GoalNode;
+	tempGoal = p_Node;
 	currentNode = &tempGoal;
 	// Down counter.
 	while (!currentNode->getIsPath()) {
@@ -262,19 +265,19 @@ void Graph::calculateClosestNodeToGoal(Node &p_GoalNode) {
 
 	if (numberOfLeftBases < numberOfRightBases && numberOfLeftBases < numberOfUpBases && numberOfLeftBases < numberOfDownBases) {
 		// Go Left of the goal node.
-		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x + numberOfLeftBases, p_GoalNode.getGraphArrayPosition().y));
+		p_Node = getNode(sf::Vector2u(p_Node.getGraphArrayPosition().x + numberOfLeftBases, p_Node.getGraphArrayPosition().y));
 	}
 	else if (numberOfRightBases < numberOfLeftBases && numberOfRightBases < numberOfUpBases && numberOfRightBases < numberOfDownBases) {
 		// Go right of the goal node.
-		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x + numberOfRightBases, p_GoalNode.getGraphArrayPosition().y));
+		p_Node = getNode(sf::Vector2u(p_Node.getGraphArrayPosition().x + numberOfRightBases, p_Node.getGraphArrayPosition().y));
 	}
 	else if (numberOfUpBases < numberOfLeftBases && numberOfUpBases < numberOfRightBases && numberOfUpBases < numberOfDownBases) {
 		// Go up of the goal node.
-		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x, p_GoalNode.getGraphArrayPosition().y + numberOfUpBases));
+		p_Node = getNode(sf::Vector2u(p_Node.getGraphArrayPosition().x, p_Node.getGraphArrayPosition().y + numberOfUpBases));
 	}
-	else {
+	else if (numberOfDownBases < numberOfLeftBases && numberOfDownBases < numberOfRightBases && numberOfDownBases < numberOfUpBases) {
 		// Go down of the goal node.
-		p_GoalNode = getNode(sf::Vector2u(p_GoalNode.getGraphArrayPosition().x, p_GoalNode.getGraphArrayPosition().y - numberOfDownBases));
+		p_Node = getNode(sf::Vector2u(p_Node.getGraphArrayPosition().x, p_Node.getGraphArrayPosition().y - numberOfDownBases));
 	}
 }
 
@@ -289,14 +292,14 @@ void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSear
 
 	if (!alreadyHasBaseNode) {
 		// Use the base position to set the nodes around it as "base" nodes, so the algorithm will not try to pass over them.
-		int searchDistance = 15;	// Pixels.
+		int searchDistance = 20;	// Pixels.
 		if (p_NeighbourSearchDistance < 20)
 			searchDistance = p_NeighbourSearchDistance;
 		else
 			;
 
-		for (int xPosition = p_BasePosition.x - (p_NeighbourSearchDistance * 2); xPosition < p_BasePosition.x + (p_NeighbourSearchDistance * 2); xPosition += searchDistance) {
-			for (int yPosition = p_BasePosition.y - (p_NeighbourSearchDistance * 2); yPosition < p_BasePosition.y + (p_NeighbourSearchDistance * 2); yPosition += searchDistance) {
+		for (int xPosition = p_BasePosition.x - p_NeighbourSearchDistance; xPosition < p_BasePosition.x + (p_NeighbourSearchDistance + p_NeighbourSearchDistance); xPosition += searchDistance) {
+			for (int yPosition = p_BasePosition.y - p_NeighbourSearchDistance; yPosition < p_BasePosition.y + (p_NeighbourSearchDistance + p_NeighbourSearchDistance); yPosition += searchDistance) {
 				if ((xPosition < 800  && xPosition > 0) && (yPosition < 600 && yPosition > 0))
 					getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
 			}
@@ -328,7 +331,20 @@ Node &Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) const {
 	}
 }
 
-Node &Graph::getNode(const sf::Vector2u &p_NodeGraphPosition) const {
+Node &Graph::getNode(sf::Vector2u &p_NodeGraphPosition) {
+	if (p_NodeGraphPosition.x < 0) {
+		p_NodeGraphPosition.x = 0;
+	}
+	else if (p_NodeGraphPosition.x >= s_m_ColumnSize) {
+		p_NodeGraphPosition.x = s_m_ColumnSize - 1;
+	}
+	if (p_NodeGraphPosition.y < 0) {
+		p_NodeGraphPosition.y = 0;
+	}
+	else if (p_NodeGraphPosition.y >= s_m_RowSize) {
+		p_NodeGraphPosition.y = s_m_RowSize - 1;
+	}
+
 	return *m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x];
 }
 
