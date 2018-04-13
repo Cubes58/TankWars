@@ -5,10 +5,9 @@
 
 Instinct::Instinct() {
 	clearMovement(); //Clear some weird movement bug
-	//Debugging Enums
-	m_eMainState = MainStates::Attacking;
-	m_eAttackingState = AttackingStates::Locating;
-	m_eDefendingState = DefendingStates::Neutral;
+	//Initial states
+	m_eMainState = MainStates::Searching;
+	m_eSubState = SubStates::PathFindNearNode;
 }
 
 Instinct::~Instinct() {
@@ -20,52 +19,94 @@ void Instinct::reset() {
 }
 
 void Instinct::move() { //called every frame
-	//update();
-	//drive();
-	QuadSearch();
-	Scan();
+	update();
 }
 
 void Instinct::update()
 {
-	if (m_eMainState == MainStates::Attacking)
+	if ((m_eMainState == MainStates::Searching && m_eSubState == SubStates::Neutral) || m_eMainState != MainStates::Searching)
 	{
-		if (QuadSearch() && m_eAttackingState == AttackingStates::Locating)
+		if (m_iOurScore < m_iEnemyScore)
 		{
-			gotoCenter = false;
-			m_eAttackingState = AttackingStates::Attacking;
+			m_eMainState = MainStates::Defending;
 		}
-		if (m_eAttackingState == AttackingStates::Attacking)
+		else if (m_iOurScore > m_iEnemyScore + scoreThreshold)
 		{
-			if (!gotoCenter)
-			{
-				m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
-				gotoCenter = true;
+			m_eMainState = MainStates::Attacking;
+		}
+	}
+
+	m_ePreMainState = m_eMainState;
+	switch (m_eMainState) {
+	case MainStates::Searching:
+		switch (m_eSubState) {
+		case SubStates::PathFindNearNode:		//find path to nearest quad node
+			PathToNearNode();						//pathfind
+			m_eSubState = SubStates::Driving;	//set driving to do after pathing
+			break;
+		case SubStates::PathFindNextNodes:	//find path to next quad node
+			PathToNextNode();	//pathfind
+			if (m_QuadProgress >= sizeof(quadrants) / sizeof(*quadrants)) {
+				m_eSubState = SubStates::Neutral;
 			}
 			else
 			{
-				fireBases();
+				m_eSubState = SubStates::Driving;	//set driving to do after pathing
 			}
+			break;
+		case SubStates::Scanning:	//scan area
+			if (Scan(false)) {	//if scan complete
+				m_QuadProgress++;
+				m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
+			} 
+			break;
+		case SubStates::Driving:	//drive to next quad node
+			if (Drive()) {	//if drive complete
+				m_eSubState = SubStates::Scanning;	//set scan to do after drive
+			}
+			break;
+		default:
+			break;
+		}
+		break;
+	case MainStates::Attacking:
+		switch (m_eSubState) {
+		/////////////
+		default:
+			break;
+		}
+		break;
+	case MainStates::Defending:
+		switch (m_eSubState) {
+		//////////////
+		default:
+			break;
+		}
+		break;
+	case MainStates::Died:
+		switch (m_ePreMainState) {
+		case MainStates::Searching:
+			m_QuadProgress = 0;
+			m_eSubState = SubStates::PathFindNearNode;
+			break;
+		case MainStates::Attacking:
 
+			break;
+		case MainStates::Defending:
+
+			break;
+		default:
+			break;
 		}
-	}
-	if (m_eMainState == MainStates::Defending)
-	{
-		gotoCenter = false;
-		if (m_bEnemySeen)
-		{
-			m_eDefendingState = DefendingStates::Engaging;
-		}
+		break;
+	default:
+		break;
 	}
 }
 
 void Instinct::markTarget(Position p_Position) 
 {
 	Memorise(p_Position, false);
-	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
-	//	m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 540)), m_Path);
-	//}
-	//m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
 }
 
 void Instinct::markEnemy(Position p_Position) {
@@ -74,11 +115,6 @@ void Instinct::markEnemy(Position p_Position) {
 
 void Instinct::markBase(Position p_Position) {
 	Memorise(p_Position, true);
-	//if (!m_Graph->accountedForBase(sf::Vector2u(p_Position.getX(), p_Position.getY()))) {
-		//m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(getX(), getY())), m_Graph->getPixelNode(sf::Vector2u(300, 240)), m_Path);
-	//}
-	//m_Graph->setBaseNodes(sf::Vector2u(p_Position.getX(), p_Position.getY()));
-	//m_bFriendlySeen = true;
 }
 
 void Instinct::markShell(Position p_Position) {
@@ -95,36 +131,34 @@ bool Instinct::isFiring() {
 
 void Instinct::score(int p_ThisScore, int p_EnemyScore) 
 {
-	std::cout << p_ThisScore << " " << p_EnemyScore << std::endl;
-	if (p_EnemyScore >= p_ThisScore + 30)
-	{
-		m_eMainState = MainStates::Defending;
+	int deltaOurScore = p_ThisScore - m_iOurScore;
+	int deltaEnemyScore = p_EnemyScore - m_iEnemyScore;
+	//check changes in the enemies score
+	if (deltaEnemyScore == 25) {
+		m_eMainState = MainStates::Died;
 	}
-	else
-	{
-		m_eMainState = MainStates::Attacking;
+	//check changes in our score
+	if (deltaOurScore == 25) {
+		m_enemyDied = true;	//they died
 	}
-	if (p_ThisScore - m_iOurScore == 10)
-	{
-		m_baseHit = true;
+	else if (deltaOurScore == 10) {
+		m_enemyBaseDied = true;	//we destroyed a base
 	}
-	if (p_ThisScore - m_iOurScore == 25)
-	{
-		m_enemyHit = true;
-	}
-	else
-	{
-		m_enemyHit = false;
-		m_baseHit = false;
-	}
+	//depending on the current score change our main state
+
 	m_iOurScore = p_ThisScore;
 	m_iEnemyScore = p_EnemyScore;
 }
 
-bool Instinct::drive()
+bool Instinct::Drive()
 {
 	if (m_Path.size() != 0)
 	{
+		if (m_bUncertain) {
+			m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), *m_Path.front(), m_Path);
+			m_bUncertain = false;
+		}
+
 		//currentNode = get node from graph using pixel pos
 		m_CurrentNode = &m_Graph->getPixelNode(sf::Vector2u(getX(), getY()));
 		m_TargetNode = m_Path.back();
@@ -176,28 +210,59 @@ bool Instinct::drive()
 	return false;
 }
 
-bool Instinct::Scan()
+bool Instinct::Scan(bool p_Clockwise)
 {
-	static bool scanStarted(false);
-	static float startTurretAngle(turretTh);
-	if (!scanStarted)
-	{
+	static bool scanStarted = false;
+	static float startTurretAngle = turretTh;
+	static float deltaAngle = 0.0f;
+
+	if (!scanStarted) {
 		scanStarted = true;
 		startTurretAngle = turretTh;
-		turretGoRight();
-	} else if (turretTh >= startTurretAngle - 5 && turretTh <= startTurretAngle - 1) {
+		if (p_Clockwise) {
+			turretGoRight();
+			goRight();
+		}
+		else {
+			turretGoLeft();
+			goLeft();
+		}
+	}
+
+	if (p_Clockwise) {
+		if (turretTh >= startTurretAngle) {
+			deltaAngle = turretTh - startTurretAngle;
+		}
+		else {
+			deltaAngle = 360 - abs(turretTh - startTurretAngle);
+		}
+	}
+	else {
+		if (turretTh <= startTurretAngle) {
+			deltaAngle = abs(turretTh - startTurretAngle);
+		}
+		else {
+			deltaAngle = 360 - (turretTh - startTurretAngle);
+		}
+	}
+
+	std::cout << deltaAngle << std::endl;
+
+	if (deltaAngle < 360 && deltaAngle > 355) {
 		scanStarted = false;
+		stop();
+		stopTurret();
 		std::cout << "scan finished" << std::endl;
 		return true;
 	}
-	return true;
+	return false;
 }
 
 void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
 {
 	bool alreadyMemorised = false;
 	if (!m_Graph->accountedForBase(sf::Vector2u(p_BasePos.getX(), p_BasePos.getY()))) {
-		m_calcNewPath = true;
+		m_bUncertain = true;
 		m_Graph->setBaseNodes(sf::Vector2u(p_BasePos.getX(), p_BasePos.getY()));
 	}
 	if (p_IsAlly)
@@ -240,55 +305,31 @@ void Instinct::Memorise(Position p_BasePos, bool p_IsAlly)
 	}
 }
 
-bool Instinct::QuadSearch() //TODO: nearest quad check has no way of reseting currently
+void Instinct::PathToNearNode()
 {
-	static bool nearestQuadCheck = false;
-	static const Position quadrants[4] = {
-		Position(195, 142), //upper left
-		Position(585, 142), //upper right
-		Position(585, 427), //lower right
-		Position(195, 427) }; //lower left
-	static int nearestQuad = 0;
-	static int quadCounter = 0;
-	static int currentQuad = 0;
-
-	if (nearestQuadCheck == false)
-	{
-		nearestQuadCheck = true;
-		float PrevDist = getDistance(quadrants[0]);
-		for (int i = 0; i < sizeof(quadrants) / sizeof(*quadrants); i++) {
-			float NextDist = getDistance(quadrants[i]);
-			if (NextDist < PrevDist)
-			{
-				PrevDist = NextDist;
-				nearestQuad = i;
-			}
+	
+	float PrevDist = getDistance(quadrants[0]);
+	for (int i = 0; i < sizeof(quadrants) / sizeof(*quadrants); i++) {
+		float NextDist = getDistance(quadrants[i]);
+		if (NextDist < PrevDist)
+		{
+			PrevDist = NextDist;
+			m_targetQuad = i;
 		}
-		currentQuad = nearestQuad;
 	}
-	if (m_calcNewPath)
-	{
-		m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[currentQuad].getX(), quadrants[currentQuad].getY())), m_Path);
-		m_calcNewPath = false;
+	m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[m_targetQuad].getX(), quadrants[m_targetQuad].getY())), m_Path);
+}
+
+void Instinct::PathToNextNode()
+{
+	if (m_targetQuad == sizeof(quadrants) / sizeof(*quadrants) - 1) {
+		m_targetQuad = 0;
 	}
 	else
 	{
-		if (drive()) {
-			quadCounter++;
-			if (currentQuad == sizeof(quadrants) / sizeof(*quadrants) - 1)
-				currentQuad = 0;
-			else
-				currentQuad++;
-			m_calcNewPath = true;
-		}
+		m_targetQuad++;
 	}
-	if (quadCounter == 3) // after reaching the start quad and anything afterwards you have finished
-	{
-		quadCounter = 0;
-		nearestQuadCheck = false;
-		return true;
-	}
-	return false;
+	m_Graph->aStarSearchAlgorithm(m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), m_Graph->getPixelNode(sf::Vector2u(quadrants[m_targetQuad].getX(), quadrants[m_targetQuad].getY())), m_Path);
 }
 
 /*void Instinct::takeAim()
@@ -360,10 +401,10 @@ void Instinct::fireBases()
 		if (m_bTurretAligned)
 		{
 			m_bFiring = true;
-			if (m_baseHit)
-			{
-				m_EnemyBases.erase(m_EnemyBases.begin());
-			}
+			//if (m_baseHit)
+			//{
+			//	m_EnemyBases.erase(m_EnemyBases.begin());
+			//}
 		}
 	}
 

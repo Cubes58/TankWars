@@ -6,19 +6,18 @@
 enum class MainStates : unsigned int {
 	Attacking,
 	Defending,
-	
+	Searching,
+	Died
 };
-enum class DefendingStates : unsigned int {
-	Locating,
-	Patrolling,
-	Engaging,
+
+enum class SubStates : unsigned int {
+	Driving,
+	Scanning,
+	PathFindNextNodes,
+	PathFindNearNode,
 	Neutral
 };
-enum class AttackingStates : unsigned int {
-	Locating,
-	Attacking,
-	Neutral
-};
+
 
 class Instinct : public AITank {
 private:
@@ -28,8 +27,9 @@ private:
 	Node* m_CurrentNode;
 	
 	MainStates m_eMainState;
-	DefendingStates m_eDefendingState;
-	AttackingStates m_eAttackingState;
+	MainStates m_ePreMainState;
+	SubStates m_eSubState;
+
 	sf::Vector2u m_AimingAt;
 
 	bool m_bSeenBase = false;
@@ -40,8 +40,8 @@ private:
 	bool m_bTurretAligned = false;
 	bool m_bFiring = false;
 	bool gotoCenter = false;
-	bool m_baseHit = false;
-	bool m_enemyHit = false;
+	bool m_enemyDied = false;
+	bool m_enemyBaseDied = false;
 
 	int m_iAmmoCount = 12;
 	int m_iOurScore = 0;
@@ -51,17 +51,31 @@ private:
 	int m_iangleInDegrees = 0;
 	int m_iturretAngle = 0;
 
+
 	float rotPrecision = 5.0f;
 	float m_fgetEnemyDistance = 0.0f;
+
+	int basePointValue = 25;
+	int tankPointValue = 10;
+	int scoreThreshold = 30;
 
 	std::vector<Position> m_AllyBases;
 	std::vector<Position> m_EnemyBases;
 
-	bool m_calcNewPath = true;
+	bool m_bUncertain = true;
+	bool m_died = false;
 	int m_iBaseCheckDiameter = 5;
+	int m_targetQuad = 0;
+	int m_QuadProgress = 0;
 
 	Position m_EnemyLastPosition;
 	Position m_EnemyBasePosition;
+
+	const Position quadrants[4] = {
+		Position(195, 142), //upper left
+		Position(585, 142), //upper right
+		Position(585, 427), //lower right
+		Position(195, 427) }; //lower left
 public:
 	Instinct();
 	~Instinct();
@@ -77,10 +91,12 @@ public:
 	bool isFiring();
 	void score(int p_ThisScore, int p_EnemyScore);
 
-	bool drive();
-	bool Scan();
+	bool Drive();
+	bool Scan(bool p_Clockwise);
 	void Memorise(Position p_BasePos, bool p_IsAlly);
-	bool QuadSearch();
+	//bool QuadSearch();
+	void PathToNearNode();
+	void PathToNextNode();
 
 	//void takeAim();
 	void takeAim(Position p_Position);
