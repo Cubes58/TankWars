@@ -47,6 +47,10 @@ NodeState Node::getNodeState() const {
 }
 
 void Node::setNodeState(const NodeState &p_State) {
+	if ((m_State == NodeState::BASE || m_State == NodeState::WALL) && (p_State == NodeState::GOAL || p_State == NodeState::START)) {
+		return;
+	}
+	
 	m_State = p_State;
 
 	// Set the colour of the node, for debugging, depending on its set type.
