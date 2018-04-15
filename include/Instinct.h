@@ -15,6 +15,9 @@ enum class SubStates : unsigned int {
 	Scanning,
 	PathFindNextNodes,
 	PathFindNearNode,
+	PathToCentre,
+	Aiming,
+	Fire,
 	Neutral
 };
 
@@ -67,6 +70,8 @@ private:
 	int m_iBaseCheckDiameter = 5;
 	int m_targetQuad = 0;
 	int m_QuadProgress = 0;
+	int m_shotsFired = 0;
+
 
 	Position m_EnemyLastPosition;
 	Position m_EnemyBasePosition;
@@ -76,6 +81,8 @@ private:
 		Position(585, 142), //upper right
 		Position(585, 427), //lower right
 		Position(195, 427) }; //lower left
+
+	const Position Centre = Position(400, 300) ;
 public:
 	Instinct();
 	~Instinct();
@@ -97,11 +104,11 @@ public:
 	//bool QuadSearch();
 	void PathToNearNode();
 	void PathToNextNode();
+	void ReOrderBases();
 
 	//void takeAim();
-	void takeAim(Position p_Position);
-	void fireEnemy(Position p_Position, bool isEnemy);
-	void fireBases();
+	bool takeAim();
+	bool fire();
 	float getDistance(Position p_Position);
 
 	Graph *getGraph() const;
