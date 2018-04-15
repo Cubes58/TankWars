@@ -25,13 +25,13 @@ void Instinct::move() { //called every frame
 void Instinct::update()
 {
 	m_bFiring = false;
-	if ((m_eMainState == MainStates::Searching && m_eSubState == SubStates::Neutral) || m_eMainState != MainStates::Searching)
+	if ((m_eMainState == MainStates::Searching && m_eSubState == SubStates::Neutral) || m_eMainState != MainStates::Searching && m_eMainState != MainStates::Engaging)
 	{
 		if (m_iOurScore < m_iEnemyScore)
 		{
-			m_eMainState = MainStates::Defending;
+			m_eMainState = MainStates::Patrolling;
 		}
-		else if (m_eMainState == MainStates::Defending && m_iOurScore >= m_iEnemyScore + scoreThreshold)
+		else if (m_eMainState == MainStates::Patrolling && m_iOurScore >= m_iEnemyScore + scoreThreshold)
 		{
 			m_eMainState = MainStates::Attacking;
 			m_eSubState = SubStates::PathFindToNearBase;
@@ -124,12 +124,15 @@ void Instinct::update()
 			break;
 		}
 		break;
-	case MainStates::Defending:
+	case MainStates::Patrolling:
 		switch (m_eSubState) {
 		//////////////
 		default:
 			break;
 		}
+		break;
+	case MainStates::Engaging:
+
 		break;
 	case MainStates::Died:
 		switch (m_ePreMainState) {
@@ -140,7 +143,7 @@ void Instinct::update()
 		case MainStates::Attacking:
 
 			break;
-		case MainStates::Defending:
+		case MainStates::Patrolling:
 
 			break;
 		default:

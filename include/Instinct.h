@@ -5,7 +5,8 @@
 
 enum class MainStates : unsigned int {
 	Attacking,
-	Defending,
+	Patrolling,
+	Engaging,
 	Searching,
 	Died
 };
