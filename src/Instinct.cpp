@@ -24,6 +24,7 @@ void Instinct::move() { //called every frame
 
 void Instinct::update()
 {
+	m_bFiring = false;
 	if ((m_eMainState == MainStates::Searching && m_eSubState == SubStates::Neutral) || m_eMainState != MainStates::Searching)
 	{
 		if (m_iOurScore < m_iEnemyScore)
@@ -33,33 +34,38 @@ void Instinct::update()
 		else if (m_eMainState == MainStates::Defending && m_iOurScore >= m_iEnemyScore + scoreThreshold)
 		{
 			m_eMainState = MainStates::Attacking;
-			m_eSubState = SubStates::PathToCentre;
+			m_eSubState = SubStates::PathFindToNearBase;
 		}
 		else if (m_eMainState == MainStates::Searching && m_iOurScore >= m_iEnemyScore) {
 			m_eMainState = MainStates::Attacking;
-			m_eSubState = SubStates::PathToCentre;
+			m_eSubState = SubStates::PathFindToNearBase;
 		}
 	}
 
 	m_ePreMainState = m_eMainState;
 	switch (m_eMainState) {
 	case MainStates::Searching:
+		std::cout << "Searching" << std::endl;
 		switch (m_eSubState) {
 		case SubStates::PathFindNearNode:		//find path to nearest quad node
+			std::cout << "finding path to nearest quad" << std::endl;
 			PathToNearNode();						//pathfind
 			m_eSubState = SubStates::Driving;	//set driving to do after pathing
 			break;
 		case SubStates::PathFindNextNodes:	//find path to next quad node
+			std::cout << "finding path to next quad" << std::endl;
 			PathToNextNode();	//pathfind
 			m_eSubState = SubStates::Driving;	//set driving to do after pathing
 			break;
 		case SubStates::Scanning:	//scan area
+			std::cout << "scanning quad" << std::endl;
 			if (Scan(false)) {	//if scan complete
 				m_QuadProgress++;
 				m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
 			} 
 			break;
 		case SubStates::Driving:	//drive to next quad node
+			std::cout << "driving" << std::endl;
 			if (Drive()) {	//if drive complete
 				if (m_QuadProgress >= sizeof(quadrants) / sizeof(*quadrants)) {
 					m_eSubState = SubStates::Neutral;
@@ -74,32 +80,46 @@ void Instinct::update()
 		}
 		break;
 	case MainStates::Attacking:
+		std::cout << "Attacking" << std::endl;
 		switch (m_eSubState) {
-		case SubStates::PathToCentre:
-			m_Graph->aStarSearchAlgorithm(&m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), &m_Graph->getPixelNode(sf::Vector2u(Centre.getX(), Centre.getY())), m_Path);
+		case SubStates::PathFindToNearBase:
+			std::cout << "finding path near to base" << std::endl;
+			m_Graph->aStarSearchAlgorithm(&m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), &m_Graph->getPixelNode(sf::Vector2u(m_EnemyBases.back().getX(), m_EnemyBases.back().getY())), m_Path);
 			m_eSubState = SubStates::Driving;	//set driving to do after pathing
 			break;
 		case SubStates::Driving:
+			std::cout << "driving" << std::endl;
 			if (Drive()) {
-				ReOrderBases();
 				m_eSubState = SubStates::Aiming;
 			}
 			break;
 		case SubStates::Aiming:
+			std::cout << "aiming" << std::endl;
 			if (takeAim()) {
 				m_eSubState = SubStates::Fire;
 			}
 			break;
 		case SubStates::Fire:
+			std::cout << "firing" << std::endl;
 			if (fire()) {
-				if (m_EnemyBases.size() != 0) {
-					m_eSubState = SubStates::Aiming;
-				}
-				else {
-					m_eSubState = SubStates::Neutral;
-				}
+				m_eSubState = SubStates::ConfirmingBaseKill;
 			}
 			break;
+		case SubStates::ConfirmingBaseKill:
+			std::cout << "confirming all bases in cluster are destroyed" << std::endl;
+			if (isBaseDestroyed()) {
+				if (m_EnemyBases.size() != 0) {
+					if (m_CanSee.size() == 0) {
+						m_eSubState = SubStates::PathFindToNearBase;
+					}
+					else {
+						m_eSubState = SubStates::Aiming;
+					}
+				}
+				else {
+					m_eSubState = SubStates::Neutral;	//game is over?
+				}
+			}
 		default:
 			break;
 		}
@@ -130,11 +150,15 @@ void Instinct::update()
 	default:
 		break;
 	}
+	m_PreCanSee.clear();
+	m_PreCanSee = m_CanSee;
+	m_CanSee.clear();
 }
 
 void Instinct::markTarget(Position p_Position) 
 {
 	Memorise(p_Position, false);
+	m_CanSee.push_back(p_Position);
 }
 
 void Instinct::markEnemy(Position p_Position) {
@@ -170,8 +194,7 @@ void Instinct::score(int p_ThisScore, int p_EnemyScore)
 		m_enemyDied = true;	//they died
 	}
 	else if (deltaOurScore == 10) {
-		m_EnemyBases.pop_back();
-		m_shotsFired--;
+		//m_EnemyBases.pop_back();
 	}
 	//depending on the current score change our main state
 
@@ -362,6 +385,11 @@ void Instinct::PathToNextNode()
 	m_Graph->aStarSearchAlgorithm(&m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), &m_Graph->getPixelNode(sf::Vector2u(quadrants[m_targetQuad].getX(), quadrants[m_targetQuad].getY())), m_Path);
 }
 
+void Instinct::PathToNearBase()
+{
+	m_Graph->aStarSearchAlgorithm(&m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), &m_Graph->getPixelNode(sf::Vector2u(m_EnemyBases.back().getX(), m_EnemyBases.back().getY())), m_Path);
+}
+/*
 void Instinct::ReOrderBases()
 {
 	float PrevDist = getDistance(m_EnemyBases[0]);
@@ -383,26 +411,29 @@ void Instinct::ReOrderBases()
 		m_EnemyBases.push_back(tempPositions.front());
 		tempPositions.pop_back();
 	}
-}
-
-/*void Instinct::takeAim()
-{
-	float temp_enemy = getDistance(m_EnemyLastPosition);
-	float temp_enemyBase = getDistance(m_EnemyBasePosition);
-
-		takeAim(m_EnemyLastPosition);
-		if (m_eMainState == MainStates::Defending && m_eDefendingState == DefendingStates::Engaging)
-		{
-			fireEnemy(m_EnemyLastPosition, m_bEnemySeen);
-		}
-
-		if (m_eMainState == MainStates::Attacking && m_eAttackingState == AttackingStates::Attacking)
-		{
-			//takeAim(m_EnemyBasePosition);
-			fireBases();
-		}
-
 }*/
+
+bool Instinct::isBaseDestroyed()
+{
+	static bool seen = false;
+	for (int i = 0; i < m_PreCanSee.size(); i++) {
+		seen = false;
+		for (int j = 0; j < m_CanSee.size(); j++) {
+			if (m_PreCanSee[i].getX() == m_CanSee[j].getX() && m_CanSee[j].getY() == m_PreCanSee[i].getY()) {
+				seen = true;
+			}
+		}
+		if (!seen) {
+			for (int k = 0; k < m_EnemyBases.size(); k++) {
+				if (m_PreCanSee[i].getX() == m_EnemyBases[k].getX() && m_EnemyBases[k].getY() == m_PreCanSee[i].getY()) {
+					m_EnemyBases.erase(m_EnemyBases.begin() + k);
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
 
 bool Instinct::takeAim()
 {
@@ -412,8 +443,8 @@ bool Instinct::takeAim()
 	static float theta = 0.0f;
 	static float deltaAngle = 0.0f;
 	if (!aimStarted) {
-		deltaX = getX() - m_EnemyBases[m_shotsFired].getX();
-		deltaY = getY() - m_EnemyBases[m_shotsFired].getY();
+		deltaX = getX() - m_CanSee.back().getX();
+		deltaY = getY() - m_CanSee.back().getY();
 		theta = (atan2(deltaY, deltaX) * 180 / PI) + 180;
 	}
 	deltaAngle = turretTh - theta;
@@ -437,10 +468,7 @@ bool Instinct::fire()
 {
 	if (canFire()) {
 		m_bFiring = true;
-		if (m_EnemyBases.size() != 0 && m_EnemyBases.size() > m_shotsFired) {
-			m_shotsFired++;
-		}
-		return false;
+		return true;
 	}
 	return false;
 }

@@ -15,9 +15,10 @@ enum class SubStates : unsigned int {
 	Scanning,
 	PathFindNextNodes,
 	PathFindNearNode,
-	PathToCentre,
+	PathFindToNearBase,
 	Aiming,
 	Fire,
+	ConfirmingBaseKill,
 	Neutral
 };
 
@@ -64,13 +65,14 @@ private:
 
 	std::vector<Position> m_AllyBases;
 	std::vector<Position> m_EnemyBases;
+	std::vector<Position> m_CanSee; 
+	std::vector<Position> m_PreCanSee;
 
 	bool m_bUncertain = true;
 	bool m_died = false;
 	int m_iBaseCheckDiameter = 5;
 	int m_targetQuad = 0;
 	int m_QuadProgress = 0;
-	int m_shotsFired = 0;
 
 
 	Position m_EnemyLastPosition;
@@ -104,7 +106,9 @@ public:
 	//bool QuadSearch();
 	void PathToNearNode();
 	void PathToNextNode();
-	void ReOrderBases();
+	void PathToNearBase();
+	//void ReOrderBases();
+	bool isBaseDestroyed();
 
 	//void takeAim();
 	bool takeAim();
