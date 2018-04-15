@@ -10,7 +10,7 @@ Node::Node(int p_ID, const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_
 	m_Shape.setSize(sf::Vector2f((float)m_Size.x, (float)m_Size.y));
 	m_Shape.setOutlineThickness(outLineThinkness);
 	m_Shape.setOutlineColor(sf::Color::Black);
-	m_IsPath = false;
+	m_IsPath = false;			// Pointless, as this is set in setNodeState.
 	setNodeState(m_State);		// Its state is set, but not the node colour, so set it here.
 }
 
@@ -129,4 +129,12 @@ float Node::getNeighbourValue() const {
 
 void Node::setNeighbourValue(float p_NeighbourValue) {
 	m_NeighbourValue = p_NeighbourValue;
+}
+
+Node *Node::getParent() {
+	return m_ParentNode;
+}
+
+void Node::setParent(Node *p_ParentNode) {
+	m_ParentNode = p_ParentNode;
 }

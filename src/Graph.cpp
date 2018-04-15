@@ -23,7 +23,7 @@ Graph::Graph() {
 		}
 	}
 
-	// Expect a max of 10 bases, on the map.
+	// Expect a max of 20 bases, on the map.
 	m_BasesFound.reserve(20);
 }
 
@@ -40,7 +40,7 @@ Graph::~Graph() {
 }
 
 void Graph::draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_State) const {
-	// Get every node, and call the draw method, which draws the sf::RectangleShape m_Shape the node has.
+	// Get every node from m_Nodes, and call the draw method, which draws the sf::RectangleShape m_Shape the node has.
 	for (auto &i : m_Nodes) {
 		for (auto &j : i) {
 			j->draw(p_RenderTarget, p_State);
@@ -53,19 +53,17 @@ bool Graph::aStarSearchAlgorithm(Node *p_StartNode, Node *p_GoalNode, std::list<
 	p_Path.clear();
 	clearNodes();
 
-	// The node, given as a goal node is either a base or a wall node, so we cannot move to it.
+	// If the node, given as a goal node is either a base or a wall node, we cannot move to it, so we need to calculate the closest node that's a path.
 	if (p_GoalNode->getNodeState() == NodeState::BASE) {
-		// Sets the goal node, to the closest node to the goal, that is a path (i.e. not a base or wall).
+		// Sets the goal node, to the closest node that's a path (i.e. not a base or wall).
 		p_GoalNode = calculateClosestPathNode(p_GoalNode);
 	}
 	if (p_StartNode->getNodeState() == NodeState::BASE) {
-		p_StartNode = calculateClosestPathNode(p_StartNode);
+ 		p_StartNode = calculateClosestPathNode(p_StartNode);
 	}
 	
 	std::list<Node> openList;		// List of nodes that haven't been explored.
 	std::list<Node> closedList;		// List of nodes that have been explored.
-
-	//std::map<int, Node> cameFrom;	// Tracking parent node[s].
 
 	// Set the starting node and its values (G, H, and F).
 	Node currentNode = *p_StartNode;
@@ -75,7 +73,7 @@ bool Graph::aStarSearchAlgorithm(Node *p_StartNode, Node *p_GoalNode, std::list<
 	// Add the starting node to the list.
 	openList.push_back(currentNode);
 
-	// While there are nodes in the open list, to check for a path with.
+	// While there are nodes in the open list, to check for a path with. Do the following:
 	while (!openList.empty()) {
 		openList.sort();		// Sort the open list, according to the node's m_FValue (overloaded the < operator, which is what it uses).
 
@@ -87,13 +85,12 @@ bool Graph::aStarSearchAlgorithm(Node *p_StartNode, Node *p_GoalNode, std::list<
 
 		Node *bestNeighbourNode = &currentNode;
 		if (currentNode == *p_GoalNode) {
-			p_GoalNode->m_ParentNode = getNode(bestNeighbourNode->getID()).m_ParentNode;
+			p_GoalNode->setParent(getNode(bestNeighbourNode->getID()).getParent());
 			p_Path = constructPath(*p_GoalNode);
 			return true;		// Path found.
 		}		
 
 		// Keep track of the best neighbour, so we can compare the others, and update it, if there's one better.
-		//Node *bestNeighbourNode = &currentNode;	
 		for (auto &neighbourNode : getNeighbours(currentNode)) {
 			// The new G cost, of the neighbourNode is the current node G cost, plus the neighbour move cost (1, or 1.414).  
 			float newGCost = currentNode.getGValue() + neighbourNode->getNeighbourValue();											
@@ -117,10 +114,9 @@ bool Graph::aStarSearchAlgorithm(Node *p_StartNode, Node *p_GoalNode, std::list<
 			neighbourNode->setFValue(newGCost + neighbourNode->getHValue());	// Update the neighbour's f cost.
 
 			if (!inOpenList)
-				openList.push_back(*neighbourNode);		// If the neighbour isn't on the closed list, add it on.
-			else {
+				openList.push_back(*neighbourNode);		/* If the neighbour isn't on the closed list, add it on. */
+			else 
 				bestNeighbourNode = neighbourNode;
-			}
 
 			// Set the best cost to goal node, as the one we're on.
 			// Node's that have a better score need to be kept track of.
@@ -130,10 +126,9 @@ bool Graph::aStarSearchAlgorithm(Node *p_StartNode, Node *p_GoalNode, std::list<
 			}	
 		}
 		// Set the best neighbour's parent to the current node.
-		getNode(bestNeighbourNode->getID()).m_ParentNode = &getNode(currentNode.getID());
+		getNode(bestNeighbourNode->getID()).setParent(&getNode(currentNode.getID()));
 
-
-		// DEBUG PURPOSES: To see the closed/open list, in debug mode.
+		// DEBUG (visual) purposes: To see the open/closed list, in debug mode.
 		for (auto &i : closedList) {
 			if (!(i.getNodeState() == NodeState::START || i.getNodeState() == NodeState::GOAL))
 				getNode(sf::Vector2u(i.getGraphArrayPosition())).setNodeState(NodeState::CLOSED);
@@ -172,8 +167,8 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 					neighbours.push_back(neighbourNode);			// Add the neighbour node to the vector of neighbours.
 
 					Node *temp = &getNode(neighbourNode->getGraphArrayPosition());
-					if (temp->m_ParentNode == nullptr)
-						temp->m_ParentNode = &getNode(p_Node.getGraphArrayPosition());
+					if (temp->getParent() == nullptr)
+						temp->setParent(&getNode(p_Node.getGraphArrayPosition()));
 				}
 			}
 		}
@@ -184,29 +179,35 @@ std::vector<Node*> Graph::getNeighbours(Node &p_Node) {
 }
 
 std::list<Node*> Graph::constructPath(Node &p_GoalNode) {
-	std::list<Node*> path;
+	std::list<Node*> path;		// Path found, and returned.
 
+	// Add the goal node.
 	path.push_back(&p_GoalNode);
-	Node *node = p_GoalNode.m_ParentNode;
-	while (node != nullptr && node->m_ParentNode->getGraphArrayPosition() != node->getGraphArrayPosition()) {
-		if (node->getNodeState() == NodeState::PATH || node->m_ParentNode->getNodeState() == NodeState::PATH) {
-			break;
+	Node *node = p_GoalNode.getParent();
+	while (node != nullptr && node->getParent()->getGraphArrayPosition() != node->getGraphArrayPosition()) {
+		// Make sure there isn't an "infinite" loop. 
+		if (node->getNodeState() == NodeState::PATH || node->getParent()->getNodeState() == NodeState::PATH) {
+			break;		// Break out of the loop, and return whatever path it has. (Shouldn't ever happen.)
 		}
 
-		node->setNodeState(NodeState::PATH);
-		path.push_back(node);
+		node->setNodeState(NodeState::PATH);		// Set the state, for debugging.
+		path.push_back(node);						// Add the node, to the path.
 
-		node = node->m_ParentNode;
+		node = node->getParent();					// Set the node to its parent... to repeat!
 
-		if (node->m_ParentNode->getGraphArrayPosition() == node->getGraphArrayPosition()) {
+		// If the parent is equal to itself, then we've reached the end of the path.
+		// I.e. we've back tracked to the start node, from the goal node, using the parents, creating a path.
+		// So, add the start node. This should be the final time time it iterates through this loop.
+		if (node->getParent()->getGraphArrayPosition() == node->getGraphArrayPosition()) {
 			path.push_back(node);
 		}
 	}
 
+	// Make sure the back, and front of path are the goal/start nodes - for debugging.
 	if (path.back()->getIsPath())
 		path.back()->setNodeState(NodeState::START);
-
-	path.front()->setNodeState(NodeState::GOAL);
+	if (path.front()->getIsPath())
+		path.front()->setNodeState(NodeState::GOAL);
 
 	return path;	// Return the path, to be used.
 }
@@ -289,10 +290,7 @@ Node *Graph::calculateClosestPathNode(Node *p_Node) {
 			break;
 		}
 	}
-	Node resetGraphNode = *p_Node;
-	resetGraphNode.setNodeState(NodeState::BASE);
 
-	tempNode = *p_Node;
 	static int maxNumberOFNextBases(50);
 	if (numberOfLeftBases <= numberOfRightBases && numberOfLeftBases <= numberOfUpBases && numberOfLeftBases <= numberOfDownBases && maxNumberOFNextBases >= numberOfLeftBases) {
 		// Go Left of the goal node.
@@ -320,9 +318,6 @@ Node *Graph::calculateClosestPathNode(Node *p_Node) {
 		p_Node = &getNode(sf::Vector2u(20, 15));
 	}
 
-	getNode(sf::Vector2u(resetGraphNode.getGraphArrayPosition().x, resetGraphNode.getGraphArrayPosition().y)) = resetGraphNode;
-	p_Node->setNodeState(NodeState::NOTHING);
-
 	return p_Node;
 }
 
@@ -347,6 +342,7 @@ void Graph::setBaseNodes(const sf::Vector2u &p_BasePosition, int p_NeighbourSear
 					getPixelNode(sf::Vector2u(xPosition, yPosition)).setNodeState(NodeState::BASE);
 			}
 		}
+		// Make sure we add the base, so we can always account for it. (Go by it.)
 		m_BasesFound.push_back(p_BasePosition);
 	}
 }
@@ -357,7 +353,7 @@ void Graph::clearNodes() {
 		for (auto &j : i) {
 			if (!(j->getNodeState() == NodeState::BASE || j->getNodeState() == NodeState::WALL))
 				j->setNodeState(NodeState::NOTHING);
-			j->m_ParentNode = nullptr;
+			j->setParent(nullptr);
 		}
 	}
 }
@@ -375,19 +371,17 @@ Node &Graph::getPixelNode(const sf::Vector2u &p_NodePixelPosition) const {
 }
 
 Node &Graph::getNode(sf::Vector2u &p_NodeGraphPosition) {
-	if (p_NodeGraphPosition.x < 0) {
+	// Make sure a valid position has been selected.
+	if (p_NodeGraphPosition.x < 0) 
 		p_NodeGraphPosition.x = 0;
-	}
-	else if (p_NodeGraphPosition.x >= s_m_ColumnSize) {
+	else if (p_NodeGraphPosition.x >= s_m_ColumnSize) 
 		p_NodeGraphPosition.x = s_m_ColumnSize - 1;
-	}
-	if (p_NodeGraphPosition.y < 0) {
+	if (p_NodeGraphPosition.y < 0) 
 		p_NodeGraphPosition.y = 0;
-	}
-	else if (p_NodeGraphPosition.y >= s_m_RowSize) {
+	else if (p_NodeGraphPosition.y >= s_m_RowSize) 
 		p_NodeGraphPosition.y = s_m_RowSize - 1;
-	}
 
+	// Return the node.
 	return *m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x];
 }
 
@@ -401,12 +395,22 @@ Node &Graph::getNode(int p_ID) const {
 	}
 }
 
-NodeState Graph::getNodeState(const sf::Vector2u &p_GridPosition) const {
-	return m_Nodes[p_GridPosition.y][p_GridPosition.x]->getNodeState();
+NodeState Graph::getNodeState(sf::Vector2u p_NodeGraphPosition) {
+	// Make sure a valid position has been selected.
+	if (p_NodeGraphPosition.x < 0)
+		p_NodeGraphPosition.x = 0;
+	else if (p_NodeGraphPosition.x >= s_m_ColumnSize)
+		p_NodeGraphPosition.x = s_m_ColumnSize - 1;
+	if (p_NodeGraphPosition.y < 0)
+		p_NodeGraphPosition.y = 0;
+	else if (p_NodeGraphPosition.y >= s_m_RowSize)
+		p_NodeGraphPosition.y = s_m_RowSize - 1;
+
+	return m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x]->getNodeState();
 }
 
-void Graph::setNodeState(const sf::Vector2u &p_GridPosition, const NodeState &p_NodeState) {
-	m_Nodes[p_GridPosition.y][p_GridPosition.x]->setNodeState(p_NodeState);
+void Graph::setNodeState(const sf::Vector2u &p_NodeGraphPosition, const NodeState &p_NodeState) {
+	m_Nodes[p_NodeGraphPosition.y][p_NodeGraphPosition.x]->setNodeState(p_NodeState);
 }
 
 std::vector<sf::Vector2u> &Graph::getBasesFound() {
@@ -414,6 +418,9 @@ std::vector<sf::Vector2u> &Graph::getBasesFound() {
 }
 
 bool Graph::accountedForBase(const sf::Vector2u &p_Position) {
+	// Searches through the basses we have stored, checking whether we have seen it before, and stored its position.
+	// As if we've already seen it, then the nodes around it should be set to a BASE state.
+	// So we've already accounted for the base, which means we won't have to recalculate the path, to the goal.
 	for (auto &i : m_BasesFound) {
 		if (i.x == p_Position.x && i.y == p_Position.y) {
 			return true;

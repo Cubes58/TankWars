@@ -2,8 +2,6 @@
 
 #include <SFML\Graphics.hpp>
 
-#include <cmath>
-
 enum class NodeState : unsigned int {		/* Must explicitly type cast! */
 	PATH,
 	WALL,
@@ -21,10 +19,10 @@ private:
 	int m_ID;
 	sf::Vector2u m_PixelPosition;		// Its position on the screen.
 	sf::Vector2u m_GraphArrayPosition;	// Its position in the (Graph) array.
-	sf::Vector2u m_Size;
-	//Node *m_ParentNode = nullptr;
+	sf::Vector2u m_Size;				// Size of the rectangle, on the graph - also used to space them out, in the graph.
+	Node *m_ParentNode = nullptr;		// Parent of the node - where it's come from.
 
-	NodeState m_State;
+	NodeState m_State;					// State of the node, for debugging, and helps the A* algorithm know if it's a possible path, or not.
 
 	bool m_IsPath;
 	
@@ -33,14 +31,12 @@ private:
 	float m_FValue;			// Total distance cost, of the node.
 	float m_NeighbourValue;	// Cost it takes to move to this node, from the current node (either 1, or 1.414).
 
-	sf::RectangleShape m_Shape;
+	sf::RectangleShape m_Shape;		// Used for debugging, visually represents the node, in the window.
 public:
 	// Constructor.
 	Node() = default;	/* Default constructor. */
 	Node(int p_ID, const sf::Vector2u &p_PixelPosition, const sf::Vector2u &p_Size, const sf::Vector2u &p_GraphArrayPosition, NodeState p_State = NodeState::OPEN);
 	~Node();
-
-	Node *m_ParentNode = nullptr;
 
 	// Draw method.
 	void draw(sf::RenderTarget &p_RenderTarget, sf::RenderStates p_States) const;
@@ -68,6 +64,9 @@ public:
 
 	float getNeighbourValue() const;
 	void setNeighbourValue(float p_NeighbourValue);
+
+	Node *getParent();
+	void setParent(Node *p_ParentNode);
 
 	// Compare nodes based on their m_FValue - sort by lowest f cost when using the less than operator to compare.
 	// This is used in the Graph class, when we sort the open list, using the sort method.
