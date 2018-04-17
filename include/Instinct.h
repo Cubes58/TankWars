@@ -5,7 +5,6 @@
 
 enum class MainStates : unsigned int {
 	Attacking,
-	Patrolling,
 	Engaging,
 	Searching,
 	Died
@@ -17,9 +16,11 @@ enum class SubStates : unsigned int {
 	PathFindNextNodes,
 	PathFindNearNode,
 	PathFindToNearBase,
+	PathFindToLastEnemyPos,
 	Aiming,
 	Fire,
 	ConfirmingBaseKill,
+	Tracking,
 	Neutral
 };
 
@@ -76,8 +77,10 @@ private:
 	int m_QuadProgress = 0;
 
 
-	Position m_EnemyLastPosition;
-	Position m_EnemyBasePosition;
+	//Position m_EnemyPos;
+	Position m_EnemyPrevPos;
+	std::list<Position> m_Enemy2FramePos;
+	std::vector<Position> m_CanSeeEnemy;
 
 	const Position quadrants[4] = {
 		Position(195, 142), //upper left
@@ -110,9 +113,10 @@ public:
 	void PathToNearBase();
 	//void ReOrderBases();
 	bool isBaseDestroyed();
+	bool isTracked();
 
 	//void takeAim();
-	bool takeAim();
+	bool takeAim(float x, float y);
 	bool fire();
 	float getDistance(Position p_Position);
 

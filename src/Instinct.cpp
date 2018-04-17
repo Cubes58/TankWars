@@ -24,25 +24,10 @@ void Instinct::move() { //called every frame
 
 void Instinct::update()
 {
+	std::cout << "pre: " << (int)m_ePreMainState << std::endl;
+	std::cout << "main: " << (int)m_ePreMainState << std::endl;
 	m_bFiring = false;
-	if ((m_eMainState == MainStates::Searching && m_eSubState == SubStates::Neutral) || m_eMainState != MainStates::Searching && m_eMainState != MainStates::Engaging)
-	{
-		if (m_iOurScore < m_iEnemyScore)
-		{
-			m_eMainState = MainStates::Patrolling;
-		}
-		else if (m_eMainState == MainStates::Patrolling && m_iOurScore >= m_iEnemyScore + scoreThreshold)
-		{
-			m_eMainState = MainStates::Attacking;
-			m_eSubState = SubStates::PathFindToNearBase;
-		}
-		else if (m_eMainState == MainStates::Searching && m_iOurScore >= m_iEnemyScore) {
-			m_eMainState = MainStates::Attacking;
-			m_eSubState = SubStates::PathFindToNearBase;
-		}
-	}
 
-	m_ePreMainState = m_eMainState;
 	switch (m_eMainState) {
 	case MainStates::Searching:
 		std::cout << "Searching" << std::endl;
@@ -61,6 +46,13 @@ void Instinct::update()
 			std::cout << "scanning quad" << std::endl;
 			if (Scan(false)) {	//if scan complete
 				m_QuadProgress++;
+				if (m_targetQuad == sizeof(quadrants) / sizeof(*quadrants) - 1) {
+					m_targetQuad = 0;
+				}
+				else
+				{
+					m_targetQuad++;
+				}
 				m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
 			} 
 			break;
@@ -95,7 +87,7 @@ void Instinct::update()
 			break;
 		case SubStates::Aiming:
 			std::cout << "aiming" << std::endl;
-			if (takeAim()) {
+			if (takeAim(m_CanSee.back().getX(), m_CanSee.back().getY())) {
 				m_eSubState = SubStates::Fire;
 			}
 			break;
@@ -124,27 +116,35 @@ void Instinct::update()
 			break;
 		}
 		break;
-	case MainStates::Patrolling:
+	case MainStates::Engaging:
 		switch (m_eSubState) {
-		//////////////
+		case SubStates::Tracking:
+			if (isTracked()) {
+				m_eSubState = SubStates::Aiming;
+			}
+			else {
+				m_eSubState = SubStates::PathFindToLastEnemyPos;
+				//path to last seen location
+			}
+			break;
+		case SubStates::Aiming:
+		
+			break;
+		case SubStates::Fire:
+			
+			break;
 		default:
 			break;
 		}
 		break;
-	case MainStates::Engaging:
-
-		break;
 	case MainStates::Died:
 		switch (m_ePreMainState) {
 		case MainStates::Searching:
-			m_QuadProgress = 0;
-			m_eSubState = SubStates::PathFindNearNode;
+			//m_QuadProgress = 0;
+			m_eSubState = SubStates::PathFindNextNodes;
+			m_eMainState = MainStates::Searching;
 			break;
 		case MainStates::Attacking:
-
-			break;
-		case MainStates::Patrolling:
-
 			break;
 		default:
 			break;
@@ -153,9 +153,11 @@ void Instinct::update()
 	default:
 		break;
 	}
+	m_ePreMainState = m_eMainState;
 	m_PreCanSee.clear();
 	m_PreCanSee = m_CanSee;
 	m_CanSee.clear();
+	m_CanSeeEnemy.clear();
 }
 
 void Instinct::markTarget(Position p_Position) 
@@ -165,7 +167,13 @@ void Instinct::markTarget(Position p_Position)
 }
 
 void Instinct::markEnemy(Position p_Position) {
-	m_EnemyLastPosition = p_Position;
+	//m_EnemyLastPosition = p_Position;
+	m_EnemyPrevPos = p_Position;
+	m_CanSeeEnemy.push_back(p_Position);
+	m_Enemy2FramePos.push_back(p_Position);
+
+	m_eMainState = MainStates::Engaging;
+	m_eSubState = SubStates::Tracking;
 }
 
 void Instinct::markBase(Position p_Position) {
@@ -378,6 +386,7 @@ void Instinct::PathToNearNode()
 
 void Instinct::PathToNextNode()
 {
+	/*
 	if (m_targetQuad == sizeof(quadrants) / sizeof(*quadrants) - 1) {
 		m_targetQuad = 0;
 	}
@@ -385,6 +394,7 @@ void Instinct::PathToNextNode()
 	{
 		m_targetQuad++;
 	}
+	*/
 	m_Graph->aStarSearchAlgorithm(&m_Graph->getPixelNode(sf::Vector2u(this->getX(), this->getY())), &m_Graph->getPixelNode(sf::Vector2u(quadrants[m_targetQuad].getX(), quadrants[m_targetQuad].getY())), m_Path);
 }
 
@@ -438,7 +448,20 @@ bool Instinct::isBaseDestroyed()
 	return false;
 }
 
-bool Instinct::takeAim()
+bool Instinct::isTracked()
+{
+	if (m_Enemy2FramePos.size() == 1 && m_CanSeeEnemy.size() == 0) {
+		m_Enemy2FramePos.clear();
+	}
+	else if (m_Enemy2FramePos.size() == 2) {
+		//work out velocity here
+		m_Enemy2FramePos.pop_front();
+		return true;
+	}
+	return false;
+}
+
+bool Instinct::takeAim(float x, float y)
 {
 	static bool aimStarted = false;
 	static float deltaX = 0.0f;
@@ -446,8 +469,8 @@ bool Instinct::takeAim()
 	static float theta = 0.0f;
 	static float deltaAngle = 0.0f;
 	if (!aimStarted) {
-		deltaX = getX() - m_CanSee.back().getX();
-		deltaY = getY() - m_CanSee.back().getY();
+		deltaX = getX() - x;
+		deltaY = getY() - y;
 		theta = (atan2(deltaY, deltaX) * 180 / PI) + 180;
 	}
 	deltaAngle = turretTh - theta;
