@@ -24,8 +24,8 @@ void Instinct::move() { //called every frame
 
 void Instinct::update()
 {
-	std::cout << "pre: " << (int)m_ePreMainState << std::endl;
-	std::cout << "main: " << (int)m_ePreMainState << std::endl;
+	//std::cout << "pre: " << (int)m_ePreMainState << std::endl;
+	//std::cout << "main: " << (int)m_ePreMainState << std::endl;
 	m_bFiring = false;
 
 	switch (m_eMainState) {
@@ -53,7 +53,15 @@ void Instinct::update()
 				{
 					m_targetQuad++;
 				}
-				m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
+				if (m_EnemyBases.size() != 0) {
+					m_eMainState = MainStates::Attacking;
+					m_eSubState = SubStates::PathFindToNearBase;
+				}
+				else {
+					m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
+				}
+				
+				//m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
 			} 
 			break;
 		case SubStates::Driving:	//drive to next quad node
@@ -72,7 +80,7 @@ void Instinct::update()
 		}
 		break;
 	case MainStates::Attacking:
-		std::cout << "Attacking" << std::endl;
+		//std::cout << "Attacking" << std::endl;
 		switch (m_eSubState) {
 		case SubStates::PathFindToNearBase:
 			std::cout << "finding path near to base" << std::endl;
@@ -92,14 +100,16 @@ void Instinct::update()
 			}
 			break;
 		case SubStates::Fire:
-			std::cout << "firing" << std::endl;
+			//std::cout << "firing" << std::endl;
 			if (fire()) {
 				m_eSubState = SubStates::ConfirmingBaseKill;
 			}
 			break;
 		case SubStates::ConfirmingBaseKill:
-			std::cout << "confirming all bases in cluster are destroyed" << std::endl;
+			//std::cout << "confirming all bases in cluster are destroyed" << std::endl;
 			if (isBaseDestroyed()) {
+				std::cout << "base destroyed" << std::endl;
+				m_iEnemyBasesTotal--;
 				if (m_EnemyBases.size() != 0) {
 					if (m_CanSee.size() == 0) {
 						m_eSubState = SubStates::PathFindToNearBase;
@@ -109,7 +119,9 @@ void Instinct::update()
 					}
 				}
 				else {
-					m_eSubState = SubStates::Neutral;	//game is over?
+					m_eMainState = MainStates::Searching;
+					m_eSubState = SubStates::PathFindNextNodes;
+					//m_eSubState = SubStates::Neutral;	//game is over?
 				}
 			}
 		default:
@@ -145,6 +157,14 @@ void Instinct::update()
 			m_eMainState = MainStates::Searching;
 			break;
 		case MainStates::Attacking:
+			if (m_EnemyBases.size() != 0) {
+				m_eSubState = SubStates::PathFindToNearBase;
+				m_eMainState = MainStates::Attacking;
+			}
+			else {
+				m_eSubState = SubStates::PathFindNextNodes;
+				m_eMainState = MainStates::Searching;
+			}
 			break;
 		default:
 			break;
@@ -172,8 +192,8 @@ void Instinct::markEnemy(Position p_Position) {
 	m_CanSeeEnemy.push_back(p_Position);
 	m_Enemy2FramePos.push_back(p_Position);
 
-	m_eMainState = MainStates::Engaging;
-	m_eSubState = SubStates::Tracking;
+	//m_eMainState = MainStates::Engaging;
+	//m_eSubState = SubStates::Tracking;
 }
 
 void Instinct::markBase(Position p_Position) {

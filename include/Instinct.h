@@ -49,10 +49,10 @@ private:
 	bool m_enemyDied = false;
 	bool m_enemyBaseDied = false;
 
-	int m_iAmmoCount = 12;
+	int m_iAmmoCountTotal = 15;
 	int m_iOurScore = 0;
 	int m_iEnemyScore = 0;
-	int m_iEnemyBases = 10;
+	int m_iEnemyBasesTotal = 10;
 	int m_ixPos = 0;
 	int m_iangleInDegrees = 0;
 	int m_iturretAngle = 0;
