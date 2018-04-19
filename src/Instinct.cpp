@@ -27,6 +27,11 @@ void Instinct::update()
 	//std::cout << "pre: " << (int)m_ePreMainState << std::endl;
 	//std::cout << "main: " << (int)m_ePreMainState << std::endl;
 	m_bFiring = false;
+	if (m_iAmmoCountTotal > m_iEnemyBasesTotal && m_eMainState != MainStates::Engaging && m_EnemyPos.size() != 0 && canFire()) {
+		m_eMainState = MainStates::Engaging;
+		m_eSubState = SubStates::Aiming;
+		clearMovement();
+	}
 
 	switch (m_eMainState) {
 	case MainStates::Searching:
@@ -56,8 +61,7 @@ void Instinct::update()
 				if (m_EnemyBases.size() != 0) {
 					m_eMainState = MainStates::Attacking;
 					m_eSubState = SubStates::PathFindToNearBase;
-				}
-				else {
+				} else {
 					m_eSubState = SubStates::PathFindNextNodes;	//set pathing to do after scan
 				}
 				
@@ -130,20 +134,17 @@ void Instinct::update()
 		break;
 	case MainStates::Engaging:
 		switch (m_eSubState) {
-		case SubStates::Tracking:
-			if (isTracked()) {
-				m_eSubState = SubStates::Aiming;
-			}
-			else {
-				m_eSubState = SubStates::PathFindToLastEnemyPos;
-				//path to last seen location
-			}
-			break;
 		case SubStates::Aiming:
-		
+			if (takeAim(m_EnemyPos.back().getX(), m_EnemyPos.back().getY())) {
+				m_eSubState = SubStates::Fire;
+			}
 			break;
 		case SubStates::Fire:
-			
+			if (fire()) {
+				m_scanStarted = false;
+				m_eMainState = MainStates::Searching;
+				m_eSubState = SubStates::PathFindNextNodes;
+			}
 			break;
 		default:
 			break;
@@ -177,7 +178,8 @@ void Instinct::update()
 	m_PreCanSee.clear();
 	m_PreCanSee = m_CanSee;
 	m_CanSee.clear();
-	m_CanSeeEnemy.clear();
+	m_EnemyPos.clear();
+	//m_CanSeeEnemy.clear();
 }
 
 void Instinct::markTarget(Position p_Position) 
@@ -187,12 +189,16 @@ void Instinct::markTarget(Position p_Position)
 }
 
 void Instinct::markEnemy(Position p_Position) {
+	m_EnemyPos.push_back(p_Position);
+	if (m_EnemyPos.size() > 1) {
+		m_EnemyPos.pop_front();
+	}
 	//m_EnemyLastPosition = p_Position;
-	m_EnemyPrevPos = p_Position;
-	m_CanSeeEnemy.push_back(p_Position);
-	m_Enemy2FramePos.push_back(p_Position);
+	//m_EnemyPrevPos = p_Position;
+	//m_CanSeeEnemy.push_back(p_Position);
+	//m_Enemy2FramePos.push_back(p_Position);
 
-	//m_eMainState = MainStates::Engaging;
+	
 	//m_eSubState = SubStates::Tracking;
 }
 
@@ -296,12 +302,12 @@ bool Instinct::Drive()
 
 bool Instinct::Scan(bool p_Clockwise)
 {
-	static bool scanStarted = false;
+	//static bool scanStarted = false;
 	static float startTurretAngle = turretTh;
 	static float deltaAngle = 0.0f;
 
-	if (!scanStarted) {
-		scanStarted = true;
+	if (!m_scanStarted) {
+		m_scanStarted = true;
 		startTurretAngle = turretTh;
 		if (p_Clockwise) {
 			turretGoRight();
@@ -333,7 +339,7 @@ bool Instinct::Scan(bool p_Clockwise)
 	std::cout << deltaAngle << std::endl;
 
 	if (deltaAngle < 360 && deltaAngle > 355) {
-		scanStarted = false;
+		m_scanStarted = false;
 		stop();
 		stopTurret();
 		std::cout << "scan finished" << std::endl;
@@ -467,7 +473,7 @@ bool Instinct::isBaseDestroyed()
 	}
 	return false;
 }
-
+/*
 bool Instinct::isTracked()
 {
 	if (m_Enemy2FramePos.size() == 1 && m_CanSeeEnemy.size() == 0) {
@@ -480,6 +486,7 @@ bool Instinct::isTracked()
 	}
 	return false;
 }
+*/
 
 bool Instinct::takeAim(float x, float y)
 {
@@ -497,14 +504,17 @@ bool Instinct::takeAim(float x, float y)
 	if (deltaAngle > 1 && deltaAngle < 180 || deltaAngle < -180)
 	{
 		turretGoLeft();
+		goLeft();
 	}
 	else if (deltaAngle < -1 && deltaAngle > -180 || deltaAngle > 180)
 	{
 		turretGoRight();
+		goRight();
 	}
 	else
 	{
 		stopTurret();
+		stop();
 		return true;
 	}
 	return false;
@@ -514,6 +524,7 @@ bool Instinct::fire()
 {
 	if (canFire()) {
 		m_bFiring = true;
+		m_iAmmoCountTotal--; //might have index error at size 0
 		return true;
 	}
 	return false;

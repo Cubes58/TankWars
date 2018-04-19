@@ -56,6 +56,7 @@ private:
 	int m_ixPos = 0;
 	int m_iangleInDegrees = 0;
 	int m_iturretAngle = 0;
+	bool m_scanStarted = false;
 
 
 	float rotPrecision = 5.0f;
@@ -71,16 +72,18 @@ private:
 	std::vector<Position> m_PreCanSee;
 
 	bool m_bUncertain = true;
+	bool m_EnemyGone = false;
+	bool m_Fired = false;
 	bool m_died = false;
 	int m_iBaseCheckDiameter = 5;
 	int m_targetQuad = 0;
 	int m_QuadProgress = 0;
 
 
-	//Position m_EnemyPos;
-	Position m_EnemyPrevPos;
-	std::list<Position> m_Enemy2FramePos;
-	std::vector<Position> m_CanSeeEnemy;
+	std::list<Position> m_EnemyPos;
+	//Position m_EnemyPrevPos;
+	//std::list<Position> m_Enemy2FramePos;
+	//std::vector<Position> m_CanSeeEnemy;
 
 	const Position quadrants[4] = {
 		Position(195, 142), //upper left
